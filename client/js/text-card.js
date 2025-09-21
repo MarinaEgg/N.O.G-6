@@ -141,7 +141,6 @@ class TextCard extends BaseCard {
     toggleDocumentMode() {
         const documentView = this.element.querySelector('.card-document-view');
         const contentView = this.element.querySelector('.card-content-view');
-        const toggleBtn = this.element.querySelector('.chat-toggle-btn');
         
         this.isDocumentMode = documentView.style.display !== 'none';
         
@@ -150,9 +149,7 @@ class TextCard extends BaseCard {
             documentView.style.display = 'none';
             contentView.style.display = 'block';
             this.element.classList.remove('document-mode');
-            toggleBtn.classList.remove('active');
-            toggleBtn.innerHTML = '<i class="fas fa-edit"></i>';
-            toggleBtn.title = 'Mode Collaboration';
+            
             // Masquer l'indicateur de collaboration
             const collabIndicatorHide = this.element.querySelector(`#collab-indicator-${this.data.id}`);
             if (collabIndicatorHide) {
@@ -167,9 +164,7 @@ class TextCard extends BaseCard {
             documentView.style.display = 'block';
             contentView.style.display = 'none';
             this.element.classList.add('document-mode');
-            toggleBtn.classList.add('active');
-            toggleBtn.innerHTML = '<i class="fas fa-file-alt"></i>';
-            toggleBtn.title = 'Retour vue normale';
+            
             // Afficher l'indicateur de collaboration
             const collabIndicatorShow = this.element.querySelector(`#collab-indicator-${this.data.id}`);
             if (collabIndicatorShow) {
