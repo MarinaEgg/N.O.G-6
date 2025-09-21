@@ -38,6 +38,26 @@
   --blur-input: #000000;
   --conversations: #000000;
 
+  /* Variables pour l'effet glassmorphism de la sidebar - OPTIMISÉES POUR CONTRASTE */
+  --sidebar-glass-bg: rgba(255, 255, 255, 0.92);
+  --sidebar-glass-border: rgba(255, 255, 255, 0.35);
+  --sidebar-blur-amount: 18px;
+  --sidebar-shadow-light: rgba(0, 0, 0, 0.12);
+  --sidebar-shadow-medium: rgba(0, 0, 0, 0.08);
+  --sidebar-shadow-soft: rgba(0, 0, 0, 0.1);
+  --sidebar-shadow-subtle: rgba(0, 0, 0, 0.06);
+  --sidebar-inset-highlight: rgba(255, 255, 255, 0.5);
+  --sidebar-inset-secondary: rgba(255, 255, 255, 0.15);
+  --sidebar-inset-sides: rgba(255, 255, 255, 0.08);
+  
+  /* Variables pour les fallbacks de compatibilité */
+  --sidebar-fallback-bg: rgba(255, 255, 255, 0.98);
+  --sidebar-fallback-border: rgba(0, 0, 0, 0.15);
+  --sidebar-fallback-shadow-strong: rgba(0, 0, 0, 0.15);
+  --sidebar-fallback-shadow-medium: rgba(0, 0, 0, 0.08);
+  --sidebar-ie-bg: rgb(255, 255, 255);
+  --sidebar-ie-border: rgb(200, 200, 200);
+
   --section-gap: 25px;
   --body-gap: 25px;
   --border-radius-1: 8px;
@@ -714,10 +734,25 @@ td.center {
   margin-left: 0;
   transition: margin-left 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   min-height: 100vh;
+  /* Optimisation pour les animations fluides - Force l'accélération GPU */
+  will-change: margin-left;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  /* Isolation du contexte de rendu pour éviter les repaints */
+  isolation: isolate;
 }
 
 body.sidebar-open .chat-main-container {
   margin-left: 288px; /* 280px sidebar + 8px gap */
+}
+
+/* Assurer que le contenu reste fluide pendant les transitions */
+body.sidebar-transitioning .chat-main-container {
+  /* Maintenir l'accélération GPU pendant la transition */
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  /* Optimiser les performances pendant l'animation */
+  will-change: margin-left, transform;
 }
 
 /* Barre de chat responsive avec sidebar */
@@ -729,10 +764,21 @@ body.sidebar-open .chat-main-container {
   z-index: 1000;
   padding: 20px;
   transition: left 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  /* Optimisation pour les animations fluides - Force l'accélération GPU */
+  will-change: left;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
 }
 
 body.sidebar-open .user-input-container {
   left: 288px; /* Décalage avec la sidebar */
+}
+
+/* Maintenir la fluidité pendant les transitions */
+body.sidebar-transitioning .user-input-container {
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  will-change: left, transform;
 }
 
 /* Bouton stop generating */
@@ -743,10 +789,18 @@ body.sidebar-open .user-input-container {
   transform: translateX(-50%);
   z-index: 1001;
   transition: left 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  /* Optimisation pour les animations fluides */
+  will-change: left;
 }
 
 body.sidebar-open .stop_generating {
   left: calc(50% + 144px); /* 288px/2 = 144px de décalage */
+}
+
+/* Maintenir la fluidité pendant les transitions */
+body.sidebar-transitioning .stop_generating {
+  /* Préserver la transformation pendant l'animation */
+  transform: translateX(-50%) translateZ(0);
 }
 
 
@@ -757,9 +811,26 @@ body.sidebar-open .stop_generating {
   left: -280px; /* Cachée par défaut */
   width: 280px;
   height: calc(100vh - 16px);
-  background-color: var(--light-gray);
+  /* Arrière-plan glassmorphism */
+  background: var(--sidebar-glass-bg) !important;
+  backdrop-filter: blur(var(--sidebar-blur-amount));
+  -webkit-backdrop-filter: blur(var(--sidebar-blur-amount));
+  -moz-backdrop-filter: blur(var(--sidebar-blur-amount));
+  -ms-backdrop-filter: blur(var(--sidebar-blur-amount));
   border-radius: 8px;
-  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  /* Bordures et ombres améliorées pour effet glassmorphism */
+  border: 1px solid var(--sidebar-glass-border);
+  box-shadow: 
+    /* Ombres externes pour la profondeur */
+    0 8px 32px var(--sidebar-shadow-light),
+    0 2px 8px var(--sidebar-shadow-medium),
+    0 16px 48px var(--sidebar-shadow-soft),
+    0 4px 16px var(--sidebar-shadow-subtle),
+    /* Effet de brillance interne */
+    inset 0 1px 0 var(--sidebar-inset-highlight),
+    inset 0 -1px 0 var(--sidebar-inset-secondary),
+    inset 1px 0 0 var(--sidebar-inset-sides),
+    inset -1px 0 0 var(--sidebar-inset-sides);
   padding: var(--section-gap);
   display: flex;
   flex-direction: column;
@@ -767,13 +838,249 @@ body.sidebar-open .stop_generating {
   gap: 16px;
   overflow-y: auto;
   z-index: 999; /* Z-index inférieur aux modals */
-  transition: left 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  border: 1px solid #e0e0e0;
+  /* Transition améliorée pour préserver l'effet glassmorphism */
+  transition: 
+    left 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    backdrop-filter 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    -webkit-backdrop-filter 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    box-shadow 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    background 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 /* État ouvert de la sidebar */
 body.sidebar-open .conversations {
   left: 8px;
+}
+
+/* Animation spécifique pour l'effet glassmorphism pendant les transitions */
+.conversations {
+  /* Assurer que l'effet de flou reste stable pendant l'animation */
+  will-change: left, backdrop-filter, box-shadow;
+  /* Optimisation GPU pour les animations fluides - Force l'accélération matérielle */
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+  /* Optimisation pour les filtres de flou */
+  filter: blur(0);
+  /* Isolation du contexte de rendu pour éviter les repaints */
+  isolation: isolate;
+}
+
+/* État de transition - améliorer la fluidité de l'effet glassmorphism */
+body.sidebar-transitioning .conversations {
+  /* Maintenir l'effet de flou pendant la transition */
+  backdrop-filter: blur(var(--sidebar-blur-amount));
+  -webkit-backdrop-filter: blur(var(--sidebar-blur-amount));
+  /* Préserver les ombres pendant l'animation */
+  box-shadow: 
+    0 8px 32px var(--sidebar-shadow-light),
+    0 2px 8px var(--sidebar-shadow-medium),
+    0 16px 48px var(--sidebar-shadow-soft),
+    0 4px 16px var(--sidebar-shadow-subtle),
+    inset 0 1px 0 var(--sidebar-inset-highlight),
+    inset 0 -1px 0 var(--sidebar-inset-secondary),
+    inset 1px 0 0 var(--sidebar-inset-sides),
+    inset -1px 0 0 var(--sidebar-inset-sides);
+  /* Optimisations de performance pendant la transition */
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  /* Forcer la composition sur GPU pendant l'animation */
+  will-change: left, backdrop-filter, box-shadow, transform;
+}
+
+/* Fallback pour navigateurs sans support backdrop-filter */
+@supports not (backdrop-filter: blur(20px)) {
+  .conversations {
+    /* Arrière-plan plus opaque pour compenser l'absence de flou */
+    background: var(--sidebar-fallback-bg) !important;
+    /* Bordure plus visible pour définir les contours */
+    border: 2px solid var(--sidebar-fallback-border) !important;
+    /* Ombres renforcées pour maintenir la profondeur */
+    box-shadow: 
+      0 12px 40px var(--sidebar-fallback-shadow-strong),
+      0 4px 12px var(--sidebar-fallback-shadow-medium),
+      0 20px 60px rgba(0, 0, 0, 0.12),
+      0 6px 20px rgba(0, 0, 0, 0.06),
+      inset 0 1px 0 rgba(255, 255, 255, 0.8),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.4),
+      inset 1px 0 0 rgba(255, 255, 255, 0.2),
+      inset -1px 0 0 rgba(255, 255, 255, 0.2) !important;
+    /* Préserver les transitions même sans backdrop-filter */
+    transition: 
+      left 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+      box-shadow 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+      background 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+      border 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+}
+
+/* Fallback supplémentaire pour les très anciens navigateurs */
+@supports not (backdrop-filter: blur(20px)) and not (-webkit-backdrop-filter: blur(20px)) {
+  .conversations {
+    /* Arrière-plan encore plus opaque pour les navigateurs sans aucun support */
+    background: rgba(255, 255, 255, 0.99) !important;
+    /* Bordure plus marquée */
+    border: 2px solid rgba(0, 0, 0, 0.2) !important;
+  }
+}
+
+/* Fallback pour Internet Explorer et navigateurs sans support @supports */
+/* IE 11 et versions antérieures */
+@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
+  .conversations {
+    /* Arrière-plan complètement opaque pour IE */
+    background: var(--sidebar-ie-bg) !important;
+    /* Bordure visible */
+    border: 2px solid var(--sidebar-ie-border) !important;
+    /* Ombres simplifiées pour IE */
+    box-shadow: 
+      0 4px 8px rgba(0, 0, 0, 0.2),
+      0 2px 4px rgba(0, 0, 0, 0.1) !important;
+  }
+}
+
+/* Fallback pour les navigateurs très anciens sans support des propriétés modernes */
+.conversations {
+  /* Propriétés de base qui fonctionnent partout */
+  background-color: #ffffff; /* Fallback de base */
+  border: 1px solid #cccccc; /* Bordure de base */
+}
+
+/* ========== AMÉLIORATION DU CONTRASTE ET LISIBILITÉ ========== */
+
+/* Variables pour le texte avec contraste amélioré */
+:root {
+  --sidebar-text-primary: #1a1a1a;
+  --sidebar-text-secondary: #2d2d2d;
+  --sidebar-text-muted: #404040;
+  --sidebar-hover-bg: rgba(255, 255, 255, 0.15);
+  --sidebar-active-bg: rgba(255, 255, 255, 0.25);
+}
+
+/* Titre principal (N.O.G) avec contraste amélioré */
+.conversations .product-name {
+  color: var(--sidebar-text-primary) !important;
+  font-weight: 700 !important;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+  letter-spacing: 0.5px;
+}
+
+/* Navigation principale avec meilleur contraste */
+.conversations .nav-item span {
+  color: var(--sidebar-text-secondary) !important;
+  font-weight: 500 !important;
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.6);
+}
+
+.conversations .nav-item.active span {
+  color: var(--sidebar-text-primary) !important;
+  font-weight: 600 !important;
+}
+
+.conversations .nav-item:hover {
+  background: var(--sidebar-hover-bg);
+  border-radius: 6px;
+}
+
+.conversations .nav-item:hover span {
+  color: var(--sidebar-text-primary) !important;
+}
+
+/* Icônes avec ombre pour plus de visibilité */
+.conversations .nav-item i {
+  color: var(--sidebar-text-secondary) !important;
+  filter: drop-shadow(0 1px 1px rgba(255, 255, 255, 0.6));
+}
+
+.conversations .nav-item.active i,
+.conversations .nav-item:hover i {
+  color: var(--sidebar-text-primary) !important;
+}
+
+/* Bouton nouvelle conversation */
+.conversations .new-conversation-label {
+  color: var(--sidebar-text-secondary) !important;
+  font-weight: 500 !important;
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.6);
+}
+
+/* Section récents avec headers plus visibles */
+.conversations .recents-header span {
+  color: var(--sidebar-text-secondary) !important;
+  font-weight: 600 !important;
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 12px;
+}
+
+/* Liste des conversations avec contraste amélioré */
+.conversations .conversation-item span {
+  color: var(--sidebar-text-secondary) !important;
+  font-weight: 400 !important;
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
+  line-height: 1.4;
+}
+
+.conversations .conversation-item:hover {
+  background: var(--sidebar-hover-bg);
+  border-radius: 4px;
+}
+
+.conversations .conversation-item:hover span {
+  color: var(--sidebar-text-primary) !important;
+  font-weight: 500 !important;
+}
+
+/* Profil utilisateur avec fond légèrement visible */
+.conversations .user-profile {
+  background: var(--sidebar-hover-bg);
+  border-radius: 8px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.conversations .user-name {
+  color: var(--sidebar-text-primary) !important;
+  font-weight: 600 !important;
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.6);
+}
+
+/* Bouton hamburger interne */
+.conversations .hamburger-icon {
+  color: var(--sidebar-text-primary) !important;
+  background: var(--sidebar-hover-bg);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  padding: 8px;
+}
+
+.conversations .hamburger-icon i {
+  color: var(--sidebar-text-primary) !important;
+  filter: drop-shadow(0 1px 1px rgba(255, 255, 255, 0.6));
+}
+
+/* Ajustements pour différents arrière-plans */
+body.bg-dark .conversations {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+body.bg-complex .conversations {
+  background: rgba(255, 255, 255, 0.96) !important;
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+}
+
+/* Fallback amélioré pour navigateurs sans backdrop-filter */
+@supports not (backdrop-filter: blur(20px)) {
+  .conversations .product-name,
+  .conversations .nav-item span,
+  .conversations .user-name {
+    color: #000000 !important;
+    text-shadow: none !important;
+  }
 }
 
 /* Bouton hamburger fixe */
@@ -825,6 +1132,18 @@ body.sidebar-open .sidebar-toggle span:nth-child(3) {
   transform: rotate(-45deg) translate(7px, -6px);
 }
 
+/* Animation du bouton hamburger interne dans la sidebar */
+.sidebar-header .hamburger-icon {
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  opacity: 1;
+}
+
+/* Assurer que l'icône hamburger reste visible pendant les transitions */
+body.sidebar-transitioning .sidebar-header .hamburger-icon {
+  opacity: 1;
+  transition: opacity 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
 /* Overlay for when sidebar is open */
 .sidebar-overlay {
   display: none;
@@ -869,6 +1188,14 @@ body.sidebar-open {
     top: 0;
     height: 100vh;
     border-radius: 0;
+    /* Préserver l'effet glassmorphism sur mobile */
+    backdrop-filter: blur(var(--sidebar-blur-amount));
+    -webkit-backdrop-filter: blur(var(--sidebar-blur-amount));
+    /* Maintenir les transitions fluides sur mobile */
+    transition: 
+      left 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+      backdrop-filter 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+      -webkit-backdrop-filter 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   }
   
   body.sidebar-open .conversations {
@@ -905,6 +1232,23 @@ body.sidebar-open {
     background: rgba(0, 0, 0, 0.5);
     z-index: 998;
     backdrop-filter: blur(2px);
+    opacity: 1;
+    transition: opacity 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+  
+  /* Animation de l'overlay pendant les transitions */
+  body.sidebar-transitioning::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 998;
+    backdrop-filter: blur(2px);
+    opacity: 0;
+    transition: opacity 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   }
 }
 
@@ -1003,8 +1347,26 @@ body.sidebar-open {
   min-width: 0;
   padding: var(--section-gap);
 
-  background-color: var(--light-gray);
+  /* Arrière-plan glassmorphism */
+  background: var(--sidebar-glass-bg) !important;
+  backdrop-filter: blur(var(--sidebar-blur-amount));
+  -webkit-backdrop-filter: blur(var(--sidebar-blur-amount));
+  -moz-backdrop-filter: blur(var(--sidebar-blur-amount));
+  -ms-backdrop-filter: blur(var(--sidebar-blur-amount));
   border-radius: 8px;
+  /* Bordures et ombres améliorées pour effet glassmorphism */
+  border: 1px solid var(--sidebar-glass-border);
+  box-shadow: 
+    /* Ombres externes pour la profondeur */
+    0 8px 32px var(--sidebar-shadow-light),
+    0 2px 8px var(--sidebar-shadow-medium),
+    0 16px 48px var(--sidebar-shadow-soft),
+    0 4px 16px var(--sidebar-shadow-subtle),
+    /* Effet de brillance interne */
+    inset 0 1px 0 var(--sidebar-inset-highlight),
+    inset 0 -1px 0 var(--sidebar-inset-secondary),
+    inset 1px 0 0 var(--sidebar-inset-sides),
+    inset -1px 0 0 var(--sidebar-inset-sides);
 
   overflow-y: auto;
   height: calc(100vh - 16px);
@@ -1016,6 +1378,26 @@ body.sidebar-open {
 
   @media screen and (max-width: 990px) {
     display: none;
+  }
+}
+
+/* Fallback pour la deuxième définition de conversations */
+@supports not (backdrop-filter: blur(20px)) {
+  .conversations {
+    /* Arrière-plan plus opaque pour compenser l'absence de flou */
+    background: var(--sidebar-fallback-bg) !important;
+    /* Bordure plus visible */
+    border: 2px solid var(--sidebar-fallback-border) !important;
+    /* Ombres renforcées */
+    box-shadow: 
+      0 12px 40px var(--sidebar-fallback-shadow-strong),
+      0 4px 12px var(--sidebar-fallback-shadow-medium),
+      0 20px 60px rgba(0, 0, 0, 0.12),
+      0 6px 20px rgba(0, 0, 0, 0.06),
+      inset 0 1px 0 rgba(255, 255, 255, 0.8),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.4),
+      inset 1px 0 0 rgba(255, 255, 255, 0.2),
+      inset -1px 0 0 rgba(255, 255, 255, 0.2) !important;
   }
 }
 
@@ -2990,6 +3372,20 @@ body.sidebar-open .modern-chat-container {
   display: flex !important;
   flex-direction: column !important;
   gap: 0 !important;
+}
+
+/* Fallback pour la troisième définition de conversations */
+@supports not (backdrop-filter: blur(25px)) {
+  .conversations {
+    /* Arrière-plan encore plus opaque pour cette version */
+    background: rgba(255, 255, 255, 0.99) !important;
+    /* Bordure plus marquée */
+    border: 2px solid rgba(0, 0, 0, 0.2) !important;
+    /* Ombres renforcées pour compenser l'absence de flou */
+    box-shadow: 
+      0 15px 50px rgba(0, 0, 0, 0.18),
+      0 6px 15px rgba(0, 0, 0, 0.1) !important;
+  }
 }
 
 /* Header avec hamburger et nom produit */
