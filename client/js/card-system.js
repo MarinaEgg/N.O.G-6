@@ -100,34 +100,11 @@ class CardSystem {
     }
 
     static createCardHeader(cardData, actions = []) {
-        const defaultActions = [
-            { 
-                class: 'pin-btn', 
-                icon: 'fas fa-thumbtack', 
-                title: 'Épingler',
-                pinned: cardData.pinned 
-            },
-            { 
-                class: 'delete-btn', 
-                icon: 'fas fa-trash', 
-                title: 'Supprimer' 
-            }
-        ];
-
-        const allActions = [...actions, ...defaultActions];
-
+        // Les actions sont maintenant gérées par le menu flottant
+        // On ne garde que le titre dans le header
         return `
             <div class="card-header">
                 <h3 class="card-title" contenteditable="true" id="main-title-${cardData.id}">${cardData.mainTitle || cardData.title || 'TITRE'}</h3>
-                <div class="card-actions">
-                    ${allActions.map(action => `
-                        <button class="card-action-btn ${action.class} ${action.pinned ? 'pinned' : ''}" 
-                                title="${action.title}" 
-                                data-card-id="${cardData.id}">
-                            <i class="${action.icon}"></i>
-                        </button>
-                    `).join('')}
-                </div>
             </div>
         `;
     }
@@ -145,20 +122,9 @@ class CardSystem {
             }
         });
 
-        // Actions communes
-        const pinBtn = cardElement.querySelector('.pin-btn');
-        const deleteBtn = cardElement.querySelector('.delete-btn');
+        // Les actions sont maintenant gérées par le menu flottant
+        // Plus besoin d'event listeners pour les boutons d'action
         
-        pinBtn?.addEventListener('click', (e) => {
-            e.stopPropagation();
-            card.togglePin();
-        });
-        
-        deleteBtn?.addEventListener('click', (e) => {
-            e.stopPropagation();
-            card.delete();
-        });
-
         // Empêcher le drag sur le titre contenteditable
         const cardTitle = cardElement.querySelector('.card-title');
         if (cardTitle) {
