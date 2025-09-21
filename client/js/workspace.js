@@ -58,6 +58,9 @@ class WorkspaceManager {
         // 🔧 FIX : Initialiser le système de cartes AVANT les event listeners
         this.cardSystem = new CardSystem(this);
         
+        // Initialiser le menu flottant
+        this.floatingMenu = new FloatingCardMenu(this);
+        
         this.setupEventListeners();
         this.loadDefaultCards();
         this.setupChatIntegration();
@@ -90,6 +93,28 @@ class WorkspaceManager {
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 this.hideCardTypeSelector();
+                // Masquer aussi le menu flottant
+                if (this.floatingMenu) {
+                    this.floatingMenu.hide();
+                }
+            }
+        });
+        
+        // Gestion des clics pour le menu flottant
+        document.addEventListener('click', (e) => {
+            this.handleDocumentClick(e);
+        });
+        
+        // Gestion du redimensionnement et scroll pour le menu flottant
+        window.addEventListener('resize', () => {
+            if (this.floatingMenu) {
+                this.floatingMenu.handleViewportChange();
+            }
+        });
+        
+        window.addEventListener('scroll', () => {
+            if (this.floatingMenu) {
+                this.floatingMenu.handleViewportChange();
             }
         });
     }
@@ -422,6 +447,11 @@ class WorkspaceManager {
         this.updateCanvasBackground();
         this.updateZoomDisplay();
         localStorage.setItem('workspace-zoom-level', this.zoomLevel.toString());
+        
+        // Repositionner le menu flottant si visible
+        if (this.floatingMenu && this.floatingMenu.isVisible && this.selectedCard) {
+            this.floatingMenu.handleViewportChange();
+        }
     }
 
     updateZoomDisplay() {
@@ -707,14 +737,51 @@ class WorkspaceManager {
     // ========== MÉTHODES UTILITAIRES ADAPTÉES ==========
 
     selectCard(cardElement) {
+        // Désélectionner toutes les autres cartes
         this.cards.forEach(card => {
             if (card.element) {
                 card.element.classList.remove('selected');
             }
         });
         
+        // Sélectionner la nouvelle carte
         cardElement.classList.add('selected');
         this.selectedCard = cardElement;
+        
+        // Afficher le menu flottant pour la carte sélectionnée
+        const cardId = cardElement.getAttribute('data-card-id');
+        const cardInstance = this.cardSystem.getCard(cardId);
+        
+        if (cardInstance && this.floatingMenu) {
+            this.floatingMenu.show(cardElement, cardInstance);
+        }
+    }
+    
+    /**
+     * Gère les clics sur le document pour masquer le menu flottant
+     * @param {Event} e - Événement de clic
+     */
+    handleDocumentClick(e) {
+        if (!this.floatingMenu || !this.floatingMenu.isVisible) return;
+        
+        // Ne pas masquer si on clique sur le menu flottant
+        if (e.target.closest('.floating-card-menu')) {
+            return;
+        }
+        
+        // Ne pas masquer si on clique sur une carte (cela va sélectionner une autre carte)
+        if (e.target.closest('.workspace-card')) {
+            return;
+        }
+        
+        // Masquer le menu pour tous les autres clics
+        this.floatingMenu.hide();
+        
+        // Désélectionner la carte courante
+        if (this.selectedCard) {
+            this.selectedCard.classList.remove('selected');
+            this.selectedCard = null;
+        }
     }
 
     saveLayout() {
