@@ -20,21 +20,9 @@ class TextCard extends BaseCard {
     }
 
     getHTML() {
-        const actions = [
-            { 
-                class: 'chat-toggle-btn', 
-                icon: 'fas fa-edit', 
-                title: 'Mode Collaboration' 
-            },
-            { 
-                class: 'clear-content-btn', 
-                icon: 'fas fa-eraser', 
-                title: 'Vider le contenu' 
-            }
-        ];
-
+        // Les actions sont maintenant gérées par le menu flottant
         return `
-            ${CardSystem.createCardHeader(this.data, actions)}
+            ${CardSystem.createCardHeader(this.data)}
             
             <div class="card-content-view" id="content-${this.data.id}">
                 <div class="card-category-section">
@@ -96,19 +84,8 @@ class TextCard extends BaseCard {
     }
 
     setupSpecificEvents() {
-        // Events spécifiques aux cartes texte
-        const chatToggleBtn = this.element.querySelector('.chat-toggle-btn');
-        const clearContentBtn = this.element.querySelector('.clear-content-btn');
-        
-        chatToggleBtn?.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.toggleDocumentMode();
-        });
-        
-        clearContentBtn?.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.clearDocumentContent();
-        });
+        // Les actions sont maintenant gérées par le menu flottant
+        // Plus besoin d'event listeners pour les boutons d'action
 
         // Event de saisie dans le document
         const docContent = this.element.querySelector('.document-content');
@@ -494,6 +471,243 @@ class TextCard extends BaseCard {
         return allFolders.map(folder => 
             `<option value="${folder}" ${folder === currentFolder ? 'selected' : ''}>${folder}</option>` 
         ).join('');
+    }
+    
+    // ========== NOUVELLES MÉTHODES POUR LE MENU FLOTTANT ==========
+    
+    /**
+     * Copie le contenu de la carte dans le presse-papiers
+     */
+    copyContent() {
+        const content = this.getDocumentContent();
+        
+        if (!content || content.trim().length === 0) {
+            this.showNotification('Aucun contenu à copier', 'warning');
+            return false;
+        }
+        
+        // Utiliser l'API moderne du presse-papiers si disponible
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(content).then(() => {
+                this.showNotification('Contenu copié !', 'success');
+            }).catch((error) => {
+                console.error('Erreur lors de la copie:', error);
+                this.fallbackCopyContent(content);
+            });
+        } else {
+            // Fallback pour les navigateurs plus anciens
+            this.fallbackCopyContent(content);
+        }
+        
+        return true;
+    }
+    
+    /**
+     * Méthode de fallback pour copier le contenu
+     * @param {string} content - Contenu à copier
+     */
+    fallbackCopyContent(content) {
+        try {
+            // Créer un élément textarea temporaire
+            const textArea = document.createElement('textarea');
+            textArea.value = content;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            
+            // Sélectionner et copier
+            textArea.focus();
+            textArea.select();
+            
+            const successful = document.execCommand('copy');
+            document.body.removeChild(textArea);
+            
+            if (successful) {
+                this.showNotification('Contenu copié !', 'success');
+            } else {
+                this.showNotification('Impossible de copier le contenu', 'error');
+            }
+        } catch (error) {
+            console.error('Erreur fallback copie:', error);
+            this.showNotification('Erreur lors de la copie', 'error');
+        }
+    }
+    
+    /**
+     * Bascule entre le mode normal et le mode plein écran
+     */
+    toggleFullscreen() {
+        if (this.isFullscreen) {
+            this.exitFullscreen();
+        } else {
+            this.enterFullscreen();
+        }
+    }
+    
+    /**
+     * Active le mode plein écran
+     */
+    enterFullscreen() {
+        this.isFullscreen = true;
+        
+        // Ajouter les classes CSS
+        this.element.classList.add('fullscreen-mode');
+        document.body.classList.add('card-fullscreen-active');
+        
+        // Créer l'overlay blur
+        this.createBlurOverlay();
+        
+        // Forcer le mode document si pas déjà actif
+        if (!this.isDocumentMode) {
+            this.toggleDocumentMode();
+        }
+        
+        // Ajuster la position et taille
+        this.adjustFullscreenLayout();
+        
+        console.log('Mode plein écran activé pour la carte:', this.data.id);
+    }
+    
+    /**
+     * Désactive le mode plein écran
+     */
+    exitFullscreen() {
+        this.isFullscreen = false;
+        
+        // Supprimer les classes CSS
+        this.element.classList.remove('fullscreen-mode');
+        document.body.classList.remove('card-fullscreen-active');
+        
+        // Supprimer l'overlay blur
+        this.removeBlurOverlay();
+        
+        // Restaurer la position et taille originales
+        this.restoreOriginalLayout();
+        
+        console.log('Mode plein écran désactivé pour la carte:', this.data.id);
+    }
+    
+    /**
+     * Crée l'overlay blur pour le mode plein écran
+     */
+    createBlurOverlay() {
+        // Supprimer l'ancien overlay s'il existe
+        this.removeBlurOverlay();
+        
+        this.blurOverlay = document.createElement('div');
+        this.blurOverlay.className = 'fullscreen-blur-overlay';
+        this.blurOverlay.id = `blur-overlay-${this.data.id}`;
+        
+        // Ajouter au DOM
+        document.body.appendChild(this.blurOverlay);
+        
+        // Event listener pour fermer en cliquant sur l'overlay
+        this.blurOverlay.addEventListener('click', (e) => {
+            if (e.target === this.blurOverlay) {
+                this.exitFullscreen();
+            }
+        });
+    }
+    
+    /**
+     * Supprime l'overlay blur
+     */
+    removeBlurOverlay() {
+        if (this.blurOverlay) {
+            this.blurOverlay.remove();
+            this.blurOverlay = null;
+        }
+        
+        // Nettoyer aussi par ID au cas où
+        const existingOverlay = document.getElementById(`blur-overlay-${this.data.id}`);
+        if (existingOverlay) {
+            existingOverlay.remove();
+        }
+    }
+    
+    /**
+     * Ajuste la mise en page pour le mode plein écran
+     */
+    adjustFullscreenLayout() {
+        // Sauvegarder la position et taille originales
+        this.originalLayout = {
+            position: {
+                x: parseInt(this.element.style.left) || 0,
+                y: parseInt(this.element.style.top) || 0
+            },
+            width: this.element.offsetWidth,
+            height: this.element.offsetHeight,
+            zIndex: this.element.style.zIndex || 'auto'
+        };
+        
+        // Appliquer la mise en page plein écran
+        this.element.style.position = 'fixed';
+        this.element.style.left = '5vw';
+        this.element.style.top = '5vh';
+        this.element.style.width = '90vw';
+        this.element.style.height = '90vh';
+        this.element.style.zIndex = '9999';
+        this.element.style.maxWidth = 'none';
+        this.element.style.maxHeight = 'none';
+    }
+    
+    /**
+     * Restaure la mise en page originale
+     */
+    restoreOriginalLayout() {
+        if (!this.originalLayout) return;
+        
+        // Restaurer la position et taille originales
+        this.element.style.position = 'absolute';
+        this.element.style.left = this.originalLayout.position.x + 'px';
+        this.element.style.top = this.originalLayout.position.y + 'px';
+        this.element.style.width = '';
+        this.element.style.height = '';
+        this.element.style.zIndex = this.originalLayout.zIndex;
+        this.element.style.maxWidth = '';
+        this.element.style.maxHeight = '';
+        
+        this.originalLayout = null;
+    }
+    
+    /**
+     * Affiche une notification à l'utilisateur
+     * @param {string} message - Message à afficher
+     * @param {string} type - Type de notification ('success', 'error', 'warning', 'info')
+     */
+    showNotification(message, type = 'info') {
+        // Supprimer les anciennes notifications
+        const existingNotifications = document.querySelectorAll('.card-notification');
+        existingNotifications.forEach(notif => notif.remove());
+        
+        // Créer la nouvelle notification
+        const notification = document.createElement('div');
+        notification.className = `card-notification notification-${type}`;
+        notification.textContent = message;
+        
+        // Positionner près de la carte
+        const cardRect = this.element.getBoundingClientRect();
+        notification.style.position = 'fixed';
+        notification.style.left = cardRect.left + 'px';
+        notification.style.top = (cardRect.top - 40) + 'px';
+        notification.style.zIndex = '10000';
+        
+        // Ajouter au DOM
+        document.body.appendChild(notification);
+        
+        // Animation d'apparition
+        setTimeout(() => {
+            notification.classList.add('visible');
+        }, 10);
+        
+        // Supprimer après 3 secondes
+        setTimeout(() => {
+            notification.classList.remove('visible');
+            setTimeout(() => {
+                notification.remove();
+            }, 300);
+        }, 3000);
     }
 
     static getAllFolders() {
