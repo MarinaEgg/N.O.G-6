@@ -725,6 +725,19 @@ canvas.pdf-canvas {
     animation: collaboration-pulse 2s infinite ease-in-out;
 }
 
+/* Responsive adjustments so padding matches indicator size on smaller screens */
+@media (max-width: 990px) {
+  .workspace-card.card-text .document-content {
+    padding-bottom: 80px;
+  }
+}
+
+@media (max-width: 600px) {
+  .workspace-card.card-text .document-content {
+    padding-bottom: 96px;
+  }
+}
+
 /* ========== DOCUMENT VIEW SCOPE (avoid conflicts with workspace.css) ========== */
 .workspace-card.card-text .card-document-view {
     position: relative;
@@ -733,6 +746,11 @@ canvas.pdf-canvas {
 .workspace-card.card-text .document-content {
     /* inherit from workspace.css but ensure overflow when constrained */
     overflow-y: auto;
+    /* Ensure the last lines are not hidden behind the collaboration indicator */
+    padding-bottom: 72px;
+    /* Better wrapping for long words/URLs to avoid horizontal overflow */
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 
 /* ========== CLEANUP OF OLD BORDERS INSIDE TEXT CARDS ========== */
