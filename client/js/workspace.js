@@ -56,10 +56,25 @@ class WorkspaceManager {
         }
 
         // 🔧 FIX : Initialiser le système de cartes AVANT les event listeners
-        this.cardSystem = new CardSystem(this);
+        if (typeof CardSystem !== 'undefined') {
+            this.cardSystem = new CardSystem(this);
+        } else {
+            console.error('CardSystem not available! Check script loading order.');
+            return;
+        }
         
         // Initialiser le menu flottant
-        this.floatingMenu = new FloatingCardMenu(this);
+        if (typeof FloatingCardMenu !== 'undefined') {
+            this.floatingMenu = new FloatingCardMenu(this);
+        } else {
+            console.warn('FloatingCardMenu not available, retrying...');
+            setTimeout(() => {
+                if (typeof FloatingCardMenu !== 'undefined') {
+                    this.floatingMenu = new FloatingCardMenu(this);
+                    console.log('FloatingCardMenu initialized after retry');
+                }
+            }, 100);
+        }
         
         this.setupEventListeners();
         this.loadDefaultCards();
@@ -72,11 +87,19 @@ class WorkspaceManager {
     }
 
     setupEventListeners() {
+        console.log('🔧 Setting up event listeners...');
+        console.log('🔧 addCardBtn found:', !!this.addCardBtn);
+        console.log('🔧 cardSystem available:', !!this.cardSystem);
+        console.log('🔧 floatingMenu available:', !!this.floatingMenu);
+        
         // 🔧 FIX : Appeler la bonne méthode avec debug
         this.addCardBtn?.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
             console.log('🎯 Bouton ajouter carte cliqué - addCardBtn trouvé:', !!this.addCardBtn);
+            console.log('🎯 CardSystem disponible:', !!this.cardSystem);
+            console.log('🎯 TextCard disponible:', typeof TextCard !== 'undefined');
+            console.log('🎯 FileCard disponible:', typeof FileCard !== 'undefined');
             this.showCardTypeSelector();
         });
         
