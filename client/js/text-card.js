@@ -1,5 +1,3 @@
-// ========== TEXTCARD - FIX DÉFINITIF TITRE HEADER ==========
-
 class TextCard extends BaseCard {
     constructor(cardData, workspaceManager) {
         // Données par défaut pour les cartes texte
@@ -39,13 +37,27 @@ class TextCard extends BaseCard {
             ${CardSystem.createCardHeader(this.data, actions)}
             
             <div class="card-content-view" id="content-${this.data.id}">
-                <div class="card-juridique-info">
-                    <div class="repertoires-list">
-                        ${this.getRepertoiresHTML()}
+                <div class="card-category-section">
+                    <div class="category-tag" id="category-${this.data.id}">
+                        ${this.data.category || 'Document de travail'}
                     </div>
-                    <div class="departement-info">
-                        <i class="fas fa-building"></i>
-                        <span>${this.data.departement || 'Département'}</span>
+                </div>
+                
+                <div class="card-summary-section">
+                    <div class="card-summary-text" id="summary-${this.data.id}">
+                        ${this.generateSummary()}
+                    </div>
+                </div>
+                
+                <div class="card-filing-section">
+                    <div class="filing-folder">
+                        <svg class="folder-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">
+                            <path d="M10 4l2 2h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h6z"
+                                  fill="rgba(253, 224, 71, 0.6)" />
+                        </svg>
+                        <select class="filing-select" id="filing-select-${this.data.id}">
+                            ${this.getFilingOptionsHTML()}
+                        </select>
                     </div>
                 </div>
             </div>
@@ -56,8 +68,17 @@ class TextCard extends BaseCard {
                         <p class="document-placeholder">Commencez à taper ou utilisez l'IA pour générer du contenu...</p>
                     </div>
                 </div>
-                <div class="document-status">
-                    <span class="collab-indicator">✍️ Mode collaboration - Tapez ou utilisez la barre de chat</span>
+                
+                <div class="collaboration-indicator" id="collab-indicator-${this.data.id}" style="display: none;">
+                    <svg class="collab-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24">
+                        <circle cx="9" cy="8" r="2.5" fill="rgba(59,130,246,0.4)" stroke="rgba(255,255,255,0.8)" stroke-width="1"/>
+                        <path d="M4.5 19c0-2.5 2-4 4.5-4s4.5 1.5 4.5 4" stroke="rgba(255,255,255,0.8)" stroke-width="1" fill="none"/>
+                        <rect x="15" y="7" width="4" height="4" rx="1" fill="rgba(16,185,129,0.4)" stroke="rgba(255,255,255,0.8)" stroke-width="1"/>
+                        <circle cx="16" cy="8.5" r="0.5" fill="rgba(255,255,255,0.9)"/>
+                        <circle cx="18" cy="8.5" r="0.5" fill="rgba(255,255,255,0.9)"/>
+                        <path d="M15 11v2c0 1 2 2 2s2-1 2-2v-2" stroke="rgba(255,255,255,0.8)" stroke-width="1" fill="none"/>
+                    </svg>
+                    <span class="collab-text">Collaboration active</span>
                 </div>
             </div>
         `;
@@ -97,16 +118,15 @@ class TextCard extends BaseCard {
             });
         }
 
-        // ⚡ CORRECTION : Event pour le titre éditable dans le header
+        // Event pour le titre éditable dans le header
         const mainTitle = this.element.querySelector('.card-title');
         if (mainTitle) {
             mainTitle.addEventListener('input', () => {
                 const newTitle = mainTitle.textContent.trim() || 'TITRE';
-                // ⚡ Mettre à jour les DEUX champs
+                // Mettre à jour les DEUX champs
                 this.data.title = newTitle;
                 this.data.mainTitle = newTitle;
                 this.saveData();
-                console.log(`📝 Titre modifié manuellement: ${newTitle}`);
             });
             
             mainTitle.addEventListener('keydown', (e) => {
@@ -125,6 +145,20 @@ class TextCard extends BaseCard {
                 e.stopPropagation();
             });
         }
+
+        // Event pour changement de répertoire
+        const filingSelect = this.element.querySelector(`#filing-select-${this.data.id}`);
+        if (filingSelect) {
+            filingSelect.addEventListener('change', (e) => {
+                const newFolder = e.target.value;
+                this.data.filingFolder = newFolder;
+                this.saveData();
+            });
+            
+            // Empêcher le drag sur la dropdown
+            filingSelect.addEventListener('mousedown', (e) => e.stopPropagation());
+            filingSelect.addEventListener('click', (e) => e.stopPropagation());
+        }
     }
 
     toggleDocumentMode() {
@@ -142,6 +176,11 @@ class TextCard extends BaseCard {
             toggleBtn.classList.remove('active');
             toggleBtn.innerHTML = '<i class="fas fa-edit"></i>';
             toggleBtn.title = 'Mode Collaboration';
+            // Masquer l'indicateur de collaboration
+            const collabIndicatorHide = this.element.querySelector(`#collab-indicator-${this.data.id}`);
+            if (collabIndicatorHide) {
+                collabIndicatorHide.style.display = 'none';
+            }
             
             if (this.workspaceManager.activeCardChat === this.data.id) {
                 this.workspaceManager.disconnectFromMainChat();
@@ -154,6 +193,11 @@ class TextCard extends BaseCard {
             toggleBtn.classList.add('active');
             toggleBtn.innerHTML = '<i class="fas fa-file-alt"></i>';
             toggleBtn.title = 'Retour vue normale';
+            // Afficher l'indicateur de collaboration
+            const collabIndicatorShow = this.element.querySelector(`#collab-indicator-${this.data.id}`);
+            if (collabIndicatorShow) {
+                collabIndicatorShow.style.display = 'flex';
+            }
             
             this.workspaceManager.connectToMainChat(this.data.id, this.element);
             
@@ -204,8 +248,6 @@ class TextCard extends BaseCard {
             this.data.documentContent = null;
             this.saveData();
             localStorage.removeItem(`workspace-doc-${this.data.id}`);
-            
-            console.log(`Document vidé pour la carte ${this.data.id}`);
         }
     }
 
@@ -216,14 +258,10 @@ class TextCard extends BaseCard {
         return docBody.textContent || docBody.innerText || '';
     }
 
-    // ========== MÉTHODES GPT - VERSION SIMPLIFIÉE ET DEBUGGÉE ==========
-
     addDocumentSection(sectionTitle, token) {
-        console.log(`🔧 [${this.data.id}] addDocumentSection appelée avec token: ${token}`);
-        
         const docBody = this.element.querySelector(`#doc-body-${this.data.id}`);
         if (!docBody) {
-            console.error(`❌ [${this.data.id}] docBody non trouvé !`);
+            console.error(`docBody non trouvé !`);
             return;
         }
         
@@ -231,7 +269,6 @@ class TextCard extends BaseCard {
         const placeholder = docBody.querySelector('.document-placeholder');
         if (placeholder) {
             placeholder.remove();
-            console.log(`🔧 [${this.data.id}] Placeholder supprimé`);
         }
         
         // Créer juste une div de contenu, SANS titre de section
@@ -245,16 +282,12 @@ class TextCard extends BaseCard {
         
         docBody.insertAdjacentHTML('beforeend', sectionHTML);
         docBody.scrollTop = docBody.scrollHeight;
-        
-        console.log(`✅ [${this.data.id}] Section créée pour token: ${token}`);
     }
 
     updateDocumentSection(token, content) {
-        console.log(`🔧 [${this.data.id}] updateDocumentSection - token: ${token}, content: ${content.substring(0, 50)}...`);
-        
         const sectionContent = this.element.querySelector(`#content-${token}`);
         if (!sectionContent) {
-            console.error(`❌ [${this.data.id}] Section content non trouvée pour token: ${token}`);
+            console.error(`Section content non trouvée pour token: ${token}`);
             return;
         }
         
@@ -268,12 +301,9 @@ class TextCard extends BaseCard {
     }
 
     finalizeDocumentSection(token, content) {
-        console.log(`🔧 [${this.data.id}] finalizeDocumentSection - token: ${token}`);
-        console.log(`🔧 [${this.data.id}] Contenu final (100 premiers caractères):`, content.substring(0, 100));
-        
         const sectionContent = this.element.querySelector(`#content-${token}`);
         if (!sectionContent) {
-            console.error(`❌ [${this.data.id}] Section content non trouvée pour finalisation !`);
+            console.error(`Section content non trouvée pour finalisation !`);
             return;
         }
         
@@ -289,15 +319,12 @@ class TextCard extends BaseCard {
         
         // Enregistrer le contenu
         this.saveDocumentContent();
-    }
-    
-    /**
-     * Exécute les commandes JavaScript trouvées dans le contenu
-     * @param {string} content - Le contenu à analyser
-     */
-    executeJavaScriptCommands(content) {
-        console.log(`🔧 [${this.data.id}] Recherche de commandes JavaScript...`);
         
+        // Mettre à jour le résumé
+        this.updateSummary();
+    }
+
+    executeJavaScriptCommands(content) {
         // Détecter card.setTitle("...")
         const setTitleRegex = /card\.setTitle\s*\(\s*["']([^"']+)["']\s*\)/g;
         let titleMatch;
@@ -305,9 +332,8 @@ class TextCard extends BaseCard {
             const titleValue = titleMatch[1];
             try {
                 this.setTitle(titleValue);
-                console.log(`✅ [${this.data.id}] setTitle exécuté:`, titleValue);
             } catch (error) {
-                console.error(`❌ [${this.data.id}] Erreur setTitle:`, error);
+                console.error(`Erreur setTitle:`, error);
             }
         }
         
@@ -318,9 +344,8 @@ class TextCard extends BaseCard {
             const categoryValue = categoryMatch[1];
             try {
                 this.setCategory(categoryValue);
-                console.log(`✅ [${this.data.id}] setCategory exécuté:`, categoryValue);
             } catch (error) {
-                console.error(`❌ [${this.data.id}] Erreur setCategory:`, error);
+                console.error(`Erreur setCategory:`, error);
             }
         }
         
@@ -331,9 +356,8 @@ class TextCard extends BaseCard {
             const folderValue = folderMatch[1];
             try {
                 this.setFolder(folderValue);
-                console.log(`✅ [${this.data.id}] setFolder exécuté:`, folderValue);
             } catch (error) {
-                console.error(`❌ [${this.data.id}] Erreur setFolder:`, error);
+                console.error(`Erreur setFolder:`, error);
             }
         }
         
@@ -345,21 +369,13 @@ class TextCard extends BaseCard {
             try {
                 const contextualCode = jsCode.replace(/\bcard\./g, 'this.');
                 eval(contextualCode);
-                console.log(`✅ [${this.data.id}] Code JS exécuté:`, jsCode);
             } catch (error) {
-                console.error(`❌ [${this.data.id}] Erreur JS:`, error);
+                console.error(`Erreur JS:`, error);
             }
         }
     }
-    
-    /**
-     * Nettoie le contenu en supprimant les blocs JavaScript et les commandes isolées
-     * @param {string} content - Le contenu à nettoyer
-     * @returns {string} Le contenu nettoyé
-     */
+
     removeJavaScriptBlocks(content) {
-        console.log(`🔧 [${this.data.id}] Contenu AVANT nettoyage:` , content.substring(0, 200));
-        
         // Supprimer les blocs ```javascript ... ` ``
         let cleanContent = content.replace(/```javascript\s*\n[\s\S]*?\n` ``/gs, '');
         cleanContent = cleanContent.replace(/```javascript[\s\S]*?` ``/gs, '');
@@ -380,16 +396,12 @@ class TextCard extends BaseCard {
         cleanContent = cleanContent.replace(/^\s*$/gm, '');
         cleanContent = cleanContent.replace(/\n{3,}/g, '\n\n');
         
-        console.log(`✅ [${this.data.id}] Contenu APRÈS nettoyage:` , cleanContent.substring(0, 200));
-        
         return cleanContent.trim();
     }
 
     formatDocumentContent(content) {
         if (!content) return '';
         
-        // ⚡ IMPORTANT : Garder le contenu brut pour l'extraction de titre
-        // mais formater pour l'affichage
         return content
             .replace(/\n\n+/g, '</p><p>')
             .replace(/\n/g, '<br>')
@@ -398,19 +410,6 @@ class TextCard extends BaseCard {
             .replace(/#{1,3}\s*(.+?)(<br>|$)/g, '<strong>$1</strong>$2'); // Transformer ## en gras
     }
 
-
-    
-    cleanup() {
-        // Nettoyage spécifique aux cartes texte
-        if (this.workspaceManager.activeCardChat === this.data.id) {
-            this.workspaceManager.disconnectFromMainChat();
-        }
-    }
-    
-    /**
-     * Définit le titre de la carte et met à jour l'affichage
-     * @param {string} newTitle - Le nouveau titre à définir
-     */
     setTitle(newTitle) {
         if (newTitle && newTitle.trim().length > 0) {
             this.data.title = newTitle.trim();
@@ -422,25 +421,121 @@ class TextCard extends BaseCard {
             }
             
             this.saveData();
-            console.log(`✅ [${this.data.id}] Titre défini par GPT: "${newTitle.trim()}"`);
         }
     }
 
-    // Méthodes statiques pour la création de cartes texte
+    setCategory(category) {
+        if (category && category.trim().length > 0) {
+            this.data.category = category.trim();
+            
+            const categoryElement = this.element.querySelector(`#category-${this.data.id}`);
+            if (categoryElement) {
+                categoryElement.textContent = category.trim();
+            }
+            
+            this.saveData();
+        }
+    }
+
+    setFolder(folder) {
+        if (folder && folder.trim().length > 0) {
+            this.data.filingFolder = folder.trim();
+            
+            // Mettre à jour la dropdown
+            const filingSelect = this.element.querySelector(`#filing-select-${this.data.id}`);
+            if (filingSelect) {
+                filingSelect.value = folder.trim();
+            }
+            
+            this.saveData();
+        }
+    }
+
+    generateSummary() {
+        const content = this.getDocumentContent();
+        
+        if (!content || content.trim().length === 0) {
+            return "Document vide - Cliquez pour ajouter du contenu";
+        }
+        
+        // Extraire les premiers mots significatifs (ignorer les titres)
+        const cleanContent = content
+            .replace(/^#{1,6}\s+/gm, '') // Supprimer les # des titres
+            .replace(/\*\*(.*?)\*\*/g, '$1') // Supprimer le gras
+            .replace(/\*(.*?)\*/g, '$1') // Supprimer l'italique
+            .trim();
+        
+        // Prendre les 100 premiers caractères
+        let summary = cleanContent.substring(0, 100);
+        
+        // Couper au dernier mot complet
+        if (summary.length === 100) {
+            const lastSpace = summary.lastIndexOf(' ');
+            if (lastSpace > 50) { // Minimum 50 caractères
+                summary = summary.substring(0, lastSpace);
+            }
+            summary += '...';
+        }
+        
+        return summary || "Contenu en cours de rédaction...";
+    }
+
+    updateSummary() {
+        const summaryElement = this.element.querySelector(`#summary-${this.data.id}`);
+        if (summaryElement) {
+            summaryElement.textContent = this.generateSummary();
+        }
+    }
+
+    getFilingOptionsHTML() {
+        const allFolders = TextCard.getAllFolders();
+        const currentFolder = this.data.filingFolder || 'Documents de travail';
+        
+        return allFolders.map(folder => 
+            `<option value="${folder}" ${folder === currentFolder ? 'selected' : ''}>${folder}</option>` 
+        ).join('');
+    }
+
+    static getAllFolders() {
+        return [
+            "Contrats", "Correspondance", "Documents de travail", "Factures de fournisseurs",
+            "Office", "Portefeuilles", "Recherches", "Surveillance", "Contre-interrogatoire",
+            "Preuve", "Rapports de recherches", "Registraire", "Procédures", 
+            "Rapports de surveillance", "Contrats et formulaires", "Transferts de dossiers",
+            "Arbitrage", "Cour d'appel du Québec", "Cour d'appel fédérale", 
+            "Cour fédérale (Demandes)", "Cours provinciales", "Procès", "Règlement",
+            "Autorité Réglementaire", "Concours", "Conditions générales de vente",
+            "Incident", "Matériel publicitaire", "Opinions", "Mises en demeure",
+            "Opérationnalisation", "Documents de clôture", "Vérification diligente",
+            "Livre Corporatif", "Gouvernance", "Réunions", "Incidents", "Opinion / Avis"
+        ];
+    }
+
+    static getRandomFolder() {
+        const folders = TextCard.getAllFolders();
+        const randomIndex = Math.floor(Math.random() * folders.length);
+        return folders[randomIndex];
+    }
+
     static createDefaultTextCard(cardData = {}) {
         const position = cardData.position || { x: 200, y: 200 };
         return {
             id: CardSystem.generateCardId('text'),
             type: 'text',
-            title: 'TITRE',              // ⚡ Titre par défaut cohérent
-            mainTitle: 'TITRE',          // ⚡ MainTitle par défaut cohérent
+            title: 'TITRE',              // Titre par défaut cohérent
+            mainTitle: 'TITRE',          // MainTitle par défaut cohérent
             theme: 'Personnalisé',
             description: 'Nouvelle carte de collaboration',
             position,
             stats: { documents: 0, lastUpdate: 'maintenant' },
             pinned: false,
             documentContent: null,
-            // ⚡ Ajout des champs manquants
+            // Champs de classement et catégorisation
+            category: 'Document de travail',
+            filingDepartment: 'AVOCAT',
+            filingCategory: 'GÉNÉRAL (AVOCAT)',
+            filingFolder: TextCard.getRandomFolder(),
+            // Ajout des champs manquants
             client: 'Client',
             dossier: 'Nouveau dossier', 
             departement: 'Département',
