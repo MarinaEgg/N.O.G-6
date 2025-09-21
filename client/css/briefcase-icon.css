@@ -1,0 +1,64 @@
+/* ========== ICÔNE MALLETTE PERSONNALISÉE ========== */
+
+/* Icône dans le header du workspace */
+.workspace-header h1::before {
+    content: '💼';
+    display: inline-block;
+    font-size: 24px;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+/* Responsive pour l'icône du header */
+@media (max-width: 990px) {
+    .workspace-header h1::before {
+        width: 20px;
+        height: 20px;
+    }
+}
+
+/* Remplacer l'icône fa-folder par l'icône mallette personnalisée */
+.nav-item .fas.fa-folder,
+.dropdown-item .fas.fa-folder,
+.repertoire-item .fas.fa-folder {
+    font-family: inherit !important;
+    font-weight: normal !important;
+}
+
+.nav-item .fas.fa-folder::before,
+.dropdown-item .fas.fa-folder::before,
+.repertoire-item .fas.fa-folder::before {
+    content: '' !important;
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    background-image: url('data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMTAyNCA5MjMiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGcgb3BhY2l0eT0iMC45Ij48cmVjdCB4PSI2MCIgeT0iMjgwIiByeD0iNzAiIHJ5PSI3MCIgd2lkdGg9IjkwMCIgaGVpZ2h0PSI1MjAiIGZpbGw9IiM4QjQ1MTMiLz48cmVjdCB4PSI2MCIgeT0iMTgwIiByeD0iNTAiIHJ5PSI1MCIgd2lkdGg9IjkwMCIgaGVpZ2h0PSIzMDAiIGZpbGw9IiNBMDUyMkQiLz48cGF0aCBkPSJNNzAgNDMwIHEyMDAgNDAgNDAwIDQwIHEzMDAgMCA0NTAgLTQwIHYyMCBxLTE1MCA0MCAtNDUwIDQwIHEtMjAwIDAgLTQwMCAtNDAgeiBmaWxsPSIjNjU0MzIxIi8+PHJlY3QgeD0iMzYwIiB5PSI3MCIgcng9IjQwIiByeT0iNDAiIHdpZHRoPSIzMDAiIGhlaWdodD0iMTIwIiBmaWxsPSIjQTA1MjJEIi8+PHJlY3QgeD0iNDAwIiB5PSIxMDAiIHJ4PSIzMCIgcnk9IjMwIiB3aWR0aD0iMjIwIiBoZWlnaHQ9IjYwIiBmaWxsPSIjOEI0NTEzIi8+PHJlY3QgeD0iNDMwIiB5PSIzMzAiIHJ4PSIyOCIgcnk9IjI4IiB3aWR0aD0iMTYwIiBoZWlnaHQ9IjcwIiBmaWxsPSIjREFBNTIwIi8+PC9nPjxnIG9wYWNpdHk9IjAuNCI+PHBhdGggZD0iTTcwIDIwMCBxMjAwIC0yMCA0MDAgLTIwIHEzMDAgMCA0NTAgMjAgdjEwIHEtMTUwIC0yMCAtNDUwIC0yMCBxLTIwMCAwIC00MDAgMjAgeiBmaWxsPSIjRkZGRkZGIi8+PHJlY3QgeD0iNDIwIiB5PSIxMTAiIHJ4PSIyMCIgcnk9IjIwIiB3aWR0aD0iMTgwIiBoZWlnaHQ9IjMwIiBmaWxsPSIjRkZGRkZGIi8+PGVsbGlwc2UgY3g9IjUxMiIgY3k9IjQwMCIgcng9IjMwMCIgcnk9IjgwIiBmaWxsPSIjRkZGRkZGIi8+PC9nPjwvc3ZnPg==');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    vertical-align: middle;
+}
+
+/* Ajustements spécifiques pour différents contextes */
+.nav-item .fas.fa-folder::before {
+    width: 20px;
+    height: 20px;
+}
+
+.dropdown-item .fas.fa-folder::before {
+    width: 16px;
+    height: 16px;
+}
+
+.repertoire-item .fas.fa-folder::before {
+    width: 14px;
+    height: 14px;
+}
+
+/* Responsive pour les icônes de navigation */
+@media (max-width: 990px) {
+    .nav-item .fas.fa-folder::before {
+        width: 18px;
+        height: 18px;
+    }
+}
