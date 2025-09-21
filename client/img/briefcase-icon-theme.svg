@@ -1,0 +1,24 @@
+<svg viewBox="0 0 1024 923" xmlns="http://www.w3.org/2000/svg">
+<!-- Corps principal de la mallette -->
+<g opacity="0.9">
+<!-- Corps inférieur -->
+<rect x="60" y="280" rx="70" ry="70" width="900" height="520" fill="#8B4513"/>
+<!-- Rabat (rectangle arrondi supérieur) -->
+<rect x="60" y="180" rx="50" ry="50" width="900" height="300" fill="#A0522D"/>
+<!-- Ombre sous le rabat pour suggérer la profondeur -->
+<path d="M70 430 q200 40 400 40 q300 0 450 -40 v20 q-150 40 -450 40 q-200 0 -400 -40 z" fill="#654321"/>
+<!-- Poignée -->
+<rect x="360" y="70" rx="40" ry="40" width="300" height="120" fill="#A0522D"/>
+<rect x="400" y="100" rx="30" ry="30" width="220" height="60" fill="#8B4513"/>
+<!-- Fermoir -->
+<rect x="430" y="330" rx="28" ry="28" width="160" height="70" fill="#DAA520"/>
+</g>
+<!-- Reflet intérieur -->
+<g opacity="0.4">
+<path d="M70 200 q200 -20 400 -20 q300 0 450 20 v10 q-150 -20 -450 -20 q-200 0 -400 20 z" fill="#FFFFFF"/>
+<!-- Reflet sur la poignée -->
+<rect x="420" y="110" rx="20" ry="20" width="180" height="30" fill="#FFFFFF"/>
+<!-- Reflet sur le corps -->
+<ellipse cx="512" cy="400" rx="300" ry="80" fill="#FFFFFF"/>
+</g>
+</svg>
