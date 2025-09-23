@@ -1,3 +1,5 @@
+// ========== CHAT.JS - MAIN CHAT MODULE ==========
+// DEPENDENCIES: utils.js must be loaded before this file
 // ========== PATCH CHAT.JS POUR INTÉGRATION WORKSPACE ==========
 // Fonction pour détecter si on est sur workspace
 const isWorkspacePage = () => {
@@ -125,10 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ========== END SIDEBAR TOGGLE ==========
 
-const query = (obj) =>
-  Object.keys(obj)
-    .map((k) => encodeURIComponent(k) + "=" + encodeURIComponent(obj[k]))
-    .join("&");
+// query function moved to utils.js
 const colorThemes = document.querySelectorAll('[name="theme"]');
 const markdown = window.markdownit();
 const message_box = document.getElementById(`messages`);
@@ -172,9 +171,7 @@ document.getElementsByClassName("library-side-nav-content")[0].innerHTML = '';
 
 class_last_message_assistant = "last-message-assistant";
 
-const format = (text) => {
-  return text.replace(/(?:\r\n|\r|\n)/g, "<br>");
-};
+// format function moved to utils.js
 
 message_input.addEventListener("blur", () => {
   window.scrollTo(0, 0);
@@ -639,9 +636,7 @@ async function fetchVideoTitle(videoID) {
   return null;
 }
 
-function getScrollY(msg) {
-  return Math.floor(message_box.scrollTop + msg.getBoundingClientRect().bottom);
-}
+// getScrollY function moved to utils.js
 
 const clear_conversations = async () => {
   const conversationsList = document.getElementById('conversationsList');
@@ -668,13 +663,7 @@ const clear_conversations = async () => {
   }
 };
 
-// Function to extract YouTube video ID
-function getYouTubeID(url) {
-  const regex =
-    /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
-  const match = url.match(regex);
-  return match ? match[1] : null;
-}
+// getYouTubeID function moved to utils.js
 
 const clear_conversation = async () => {
   let messages = message_box.getElementsByTagName(`div`);
@@ -1025,36 +1014,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 console.log('🔧 Patch chat.js pour workspace appliqué');
 
-function h2a(str1) {
-  var hex = str1.toString();
-  var str = "";
+// h2a function moved to utils.js
 
-  for (var n = 0; n < hex.length; n += 2) {
-    str += String.fromCharCode(parseInt(hex.substr(n, 2), 16));
-  }
+// uuid function moved to utils.js
 
-  return str;
-}
-
-const uuid = () => {
-  return `xxxxxxxx-xxxx-4xxx-yxxx-${Date.now().toString(16)}`.replace(
-    /[xy]/g,
-    function (c) {
-      var r = (Math.random() * 16) | 0,
-        v = c == "x" ? r : (r & 0x3) | 0x8;
-      return v.toString(16);
-    }
-  );
-};
-
-const message_id = () => {
-  random_bytes = (Math.floor(Math.random() * 1338377565) + 2956589730).toString(
-    2
-  );
-  unix = Math.floor(Date.now() / 1000).toString(2);
-
-  return BigInt(`0b${unix}${random_bytes}`).toString();
-};
+// message_id function moved to utils.js
 
 window.onload = async () => {
   load_settings_localstorage();
