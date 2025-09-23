@@ -1,11 +1,11 @@
-// ========== CHAT UTILITIES MODULE ==========
-// Fonctions purement utilitaires - SANS dépendances DOM/globales
-// Peuvent être extraites en premier car aucun risque de régression
-
+// ========== STEP 1 - utils.js (EXTRACTION SÉCURISÉE) ==========
+// Prompt pour Kiro : Extraire ces fonctions utilitaires de chat.js
 /**
- * UUID Generator
- * Génère un UUID unique basé sur le timestamp
+ * Fonctions purement utilitaires - SANS dépendances DOM/globales
+ * Peuvent être extraites en premier car aucun risque de régression
  */
+
+// UUID Generator
 const generateUUID = () => {
   return `xxxxxxxx-xxxx-4xxx-yxxx-${Date.now().toString(16)}`.replace(
     /[xy]/g,
@@ -17,20 +17,14 @@ const generateUUID = () => {
   );
 };
 
-/**
- * Message ID Generator
- * Génère un ID unique pour les messages basé sur timestamp Unix et bytes aléatoires
- */
+// Message ID Generator  
 const generateMessageId = () => {
-  const random_bytes = (Math.floor(Math.random() * 1338377565) + 2956589730).toString(2);
-  const unix = Math.floor(Date.now() / 1000).toString(2);
+  random_bytes = (Math.floor(Math.random() * 1338377565) + 2956589730).toString(2);
+  unix = Math.floor(Date.now() / 1000).toString(2);
   return BigInt(`0b${unix}${random_bytes}`).toString();
 };
 
-/**
- * Hex to ASCII Converter
- * Convertit une chaîne hexadécimale en ASCII
- */
+// Hex to ASCII
 const hexToAscii = (str1) => {
   var hex = str1.toString();
   var str = "";
@@ -40,27 +34,18 @@ const hexToAscii = (str1) => {
   return str;
 };
 
-/**
- * Text Formatter
- * Remplace les retours à la ligne par des balises <br>
- */
+// Text Formatter
 const formatText = (text) => {
   return text.replace(/(?:\r\n|\r|\n)/g, "<br>");
 };
 
-/**
- * Query String Builder
- * Construit une chaîne de requête URL à partir d'un objet
- */
+// Query String Builder
 const buildQueryString = (obj) =>
   Object.keys(obj)
     .map((k) => encodeURIComponent(k) + "=" + encodeURIComponent(obj[k]))
     .join("&");
 
-/**
- * Dynamic Warning Generator
- * Génère un avertissement dynamique basé sur la langue du navigateur
- */
+// Dynamic Warning Generator
 const getDynamicWarning = () => {
   const language = navigator.language.startsWith('fr') ? 'fr' : 'en';
   const warnings = {
@@ -70,23 +55,16 @@ const getDynamicWarning = () => {
   return `<span class="dynamic-warning">${warnings[language]}</span>`;
 };
 
-/**
- * YouTube ID Extractor
- * Extrait l'ID d'une vidéo YouTube à partir d'une URL
- */
+// YouTube ID Extractor
 const extractYouTubeId = (url) => {
   const regex = /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
   const match = url.match(regex);
   return match ? match[1] : null;
 };
 
-/**
- * Scroll Position Utilities
- * Calcule la position de scroll Y d'un élément
- */
+// Scroll Position Utilities
 const getScrollY = (element) => {
   const messageBox = document.getElementById('messages');
-  if (!messageBox) return 0;
   return Math.floor(messageBox.scrollTop + element.getBoundingClientRect().bottom);
 };
 
@@ -103,22 +81,13 @@ const ChatUtils = {
 };
 
 // Compatibility globale (maintenir pendant transition)
-if (typeof window !== 'undefined') {
-  window.uuid = generateUUID;
-  window.message_id = generateMessageId;
-  window.h2a = hexToAscii;
-  window.format = formatText;
-  window.query = buildQueryString;
-  window.getYouTubeID = extractYouTubeId;
-  window.getScrollY = getScrollY;
-  
-  // Export global pour autres modules
-  window.ChatUtils = ChatUtils;
-}
+window.uuid = generateUUID;
+window.message_id = generateMessageId;
+window.h2a = hexToAscii;
+window.format = formatText;
+window.query = buildQueryString;
+window.getYouTubeID = extractYouTubeId;
+window.getScrollY = getScrollY;
 
-// Export module (pour usage futur)
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = ChatUtils;
-}
-
-console.log('✅ ChatUtils module loaded successfully');
+// Export module
+export default ChatUtils;
