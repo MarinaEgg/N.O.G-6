@@ -1020,7 +1020,55 @@ console.log('🔧 Patch chat.js pour workspace appliqué');
 
 // message_id function moved to utils.js
 
-window.onload = async () => {
+// Fonction d'initialisation des event listeners du chat
+const initializeChatEventListeners = async () => {
+  console.log('🔧 Initializing chat event listeners...');
+  
+  // Attendre que les éléments soient disponibles
+  const waitForElements = () => {
+    return new Promise((resolve) => {
+      const checkElements = () => {
+        const messageInput = document.getElementById('message-input');
+        const sendButton = document.getElementById('send-button');
+        
+        if (messageInput && sendButton) {
+          resolve({ messageInput, sendButton });
+        } else {
+          console.log('⏳ Waiting for DOM elements...');
+          setTimeout(checkElements, 100);
+        }
+      };
+      checkElements();
+    });
+  };
+  
+  const { messageInput, sendButton } = await waitForElements();
+  
+  // Événement d'envoi via le bouton
+  console.log('✅ Send button found, adding click listener');
+  sendButton.addEventListener(`click`, async () => {
+    console.log('🔧 Send button clicked');
+    if (prompt_lock) return;
+    await handle_ask();
+  });
+
+  // Add Enter key handler for message input
+  console.log('✅ Message input found, adding keydown listener');
+  messageInput.addEventListener(`keydown`, async (event) => {
+    if (event.key === `Enter` && !event.shiftKey) {
+      console.log('🔧 Enter key pressed, sending message');
+      event.preventDefault();
+      if (prompt_lock) return;
+      await handle_ask();
+    }
+  });
+  
+  console.log('✅ Chat event listeners initialized');
+};
+
+window.addEventListener('load', async () => {
+  console.log('🔧 Chat.js window.load event triggered');
+  
   load_settings_localstorage();
 
   conversations = 0;
@@ -1042,27 +1090,13 @@ window.onload = async () => {
     }
   }
 
-  // Événement d'envoi via le bouton
-  if (send_button) {
-    send_button.addEventListener(`click`, async () => {
-      if (prompt_lock) return;
-      await handle_ask();
-    });
-  }
+  // Initialiser les event listeners du chat
+  await initializeChatEventListeners();
 
   register_settings_localstorage();
-
-  // Add Enter key handler for message input
-  if (message_input) {
-    message_input.addEventListener(`keydown`, async (event) => {
-      if (event.key === `Enter` && !event.shiftKey) {
-        event.preventDefault();
-        if (prompt_lock) return;
-        await handle_ask();
-      }
-    });
-  }
-};
+  
+  console.log('✅ Chat.js initialization complete');
+});
 
 document.querySelector(".mobile-sidebar")?.addEventListener("click", (event) => {
   const sidebar = document.querySelector(".conversations");
