@@ -1020,7 +1020,7 @@ console.log('🔧 Patch chat.js pour workspace appliqué');
 
 // message_id function moved to utils.js
 
-window.addEventListener('load', async () => {
+window.onload = async () => {
   load_settings_localstorage();
 
   conversations = 0;
