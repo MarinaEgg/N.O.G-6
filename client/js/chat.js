@@ -15,7 +15,7 @@ const isCardChatActive = () => {
 function toggleSidebar() {
   const body = document.body;
   const isOpen = body.classList.contains('sidebar-open');
-  
+
   if (isOpen) {
     body.classList.remove('sidebar-open');
     localStorage.setItem('sidebarOpen', 'false');
@@ -31,7 +31,7 @@ function initSidebar() {
   if (sidebarToggle) {
     sidebarToggle.addEventListener('click', toggleSidebar);
   }
-  
+
   // Bouton hamburger interne (dans la sidebar) - SOLUTION ROBUSTE
   const attachInternalHamburger = () => {
     const sidebarToggleInternal = document.querySelector('.sidebar-header .hamburger-icon');
@@ -46,10 +46,10 @@ function initSidebar() {
       setTimeout(attachInternalHamburger, 100);
     }
   };
-  
+
   // Attacher après un petit délai pour s'assurer que le DOM est prêt
   setTimeout(attachInternalHamburger, 50);
-  
+
   // Restaurer l'état depuis localStorage
   const savedState = localStorage.getItem('sidebarOpen');
   if (savedState === 'true') {
@@ -68,7 +68,7 @@ function handleOverlayClick(e) {
 const initWorkspaceIntegration = () => {
   if (isWorkspacePage()) {
     console.log('🔧 Initialisation intégration workspace...');
-    
+
     // Attendre que le workspace manager soit prêt
     const waitForWorkspace = () => {
       if (window.workspaceManager) {
@@ -77,7 +77,7 @@ const initWorkspaceIntegration = () => {
       }
       setTimeout(waitForWorkspace, 100);
     };
-    
+
     waitForWorkspace();
   }
 };
@@ -187,7 +187,7 @@ const handle_ask = async () => {
   if (window.modernChatBar && window.modernChatBar.isInitialized) {
     window.modernChatBar.resetTextareaHeight();
   }
-  
+
   message_input.focus();
   window.scrollTo(0, 0);
   let message = message_input.value;
@@ -198,7 +198,7 @@ const handle_ask = async () => {
     if (window.modernChatBar) {
       window.modernChatBar.resizeTextarea();
     }
-    
+
     // Vérifier si on doit router vers une carte
     if (isWorkspacePage() && isCardChatActive()) {
       // Router vers le gestionnaire de document
@@ -281,7 +281,7 @@ const ask_gpt = async (message) => {
     model = document.getElementById("model");
     prompt_lock = true;
     window.text = ``;
-    window.token = message_id();
+    window.token = window.message_id();
 
     if (stop_generating) {
       stop_generating.classList.remove(`stop_generating-hidden`);
@@ -290,7 +290,7 @@ const ask_gpt = async (message) => {
     message_box.innerHTML += `
             <div class="message message-user">
                 <div class="content" id="user_${token}">
-                    ${format(message)}
+                    ${window.format(message)}
                 </div>
             </div>`;
 
@@ -302,13 +302,13 @@ const ask_gpt = async (message) => {
     message_box.innerHTML += `
             <div class="message message-assistant">
             ${shape.replace(
-              'id="shape"',
-              `id="shape_assistant_${window.token}"`
-            )}
+      'id="shape"',
+      `id="shape_assistant_${window.token}"`
+    )}
                   ${loading_video.replace(
-                    'id="nog_video"',
-                    `id="assistant_${window.token}"`
-                  )}
+      'id="nog_video"',
+      `id="assistant_${window.token}"`
+    )}
                 <div class="content" id="imanage_${window.token}">
                     <div id="cursor"></div>
                 </div>
@@ -543,7 +543,7 @@ function createVideoSourceBubble(url, title, index, allVideoIds, allTitles) {
   `;
 
   // Ajouter l'événement de clic pour ouvrir la page de liens
-  bubble.addEventListener('click', function(e) {
+  bubble.addEventListener('click', function (e) {
     e.preventDefault();
     e.stopPropagation();
     console.log('Bubble clicked, opening links with:', allVideoIds.join(get_sep), allTitles.join(get_sep));
@@ -560,7 +560,7 @@ async function writeRAGConversation(links, text, language) {
     hljs.highlightElement(el);
   });
 
-  const video_ids = links.map((link) => getYouTubeID(link));
+  const video_ids = links.map((link) => window.getYouTubeID(link));
 
   const titles = await Promise.all(
     video_ids.map(async (video_id) => {
@@ -587,25 +587,25 @@ async function writeRAGConversation(links, text, language) {
         ${videoSourcesContainer.outerHTML}
       </div>
     </div>`;
-    
+
   message_box.scrollTop = message_box.scrollHeight;
-  
+
   // Réattacher les événements de clic après l'ajout au DOM
   const addedBubbles = message_box.querySelectorAll('.video-source-bubble');
   addedBubbles.forEach((bubble, index) => {
-    bubble.addEventListener('click', function(e) {
+    bubble.addEventListener('click', function (e) {
       e.preventDefault();
       e.stopPropagation();
       console.log('Bubble clicked from DOM, opening links with:', video_ids.join(get_sep), titles.join(get_sep));
       openLinks(video_ids.join(get_sep), titles.join(get_sep));
     });
   });
-  
+
   const last_message_assistant = document.getElementsByClassName(
     class_last_message_assistant
   )[0];
 
-  const scrolly = getScrollY(last_message_assistant);
+  const scrolly = window.getScrollY(last_message_assistant);
   last_message_assistant.classList.remove(class_last_message_assistant);
 
   const links_and_language = {
@@ -614,7 +614,7 @@ async function writeRAGConversation(links, text, language) {
     scrolly: scrolly,
     titles: titles,
   };
-  
+
   add_message(
     window.conversation_id,
     "video_assistant",
@@ -644,7 +644,7 @@ const clear_conversations = async () => {
     conversationsList.innerHTML = '';
     return;
   }
-  
+
   // Fallback pour ancien système
   if (!box_conversations) return;
   const elements = box_conversations.childNodes;
@@ -717,14 +717,14 @@ const set_conversation = async (conversation_id) => {
 
 const new_conversation = async () => {
   history.pushState({}, null, `/chat/`);
-  window.conversation_id = uuid();
+  window.conversation_id = window.uuid();
 
   await clear_conversation();
-  
+
   // Afficher le message de greeting au début d'une nouvelle conversation
   const language = navigator.language.startsWith('fr') ? 'fr' : 'en';
   const greetingText = greetingMessages[language];
-  
+
   // Ajouter le message de greeting
   message_box.innerHTML += `
     <div class="message message-assistant">
@@ -737,9 +737,9 @@ const new_conversation = async () => {
       </div>
     </div>
   `;
-  
+
   message_box.scrollTop = message_box.scrollHeight;
-  
+
   await load_conversations(20, 0, true);
 };
 
@@ -757,20 +757,19 @@ const load_conversation = async (conversation_id) => {
           <div class="message ${messageAlignmentClass}">
             ${img}
             <div class="content">
-              ${
-                item.role === "assistant"
-                  ? `<div class="assistant-content" style="word-wrap: break-word; max-width: 100%; overflow-x: auto;">${markdown.render(
-                      item.content
-                    )}</div>`
-                  : item.content
-              }
+              ${item.role === "assistant"
+          ? `<div class="assistant-content" style="word-wrap: break-word; max-width: 100%; overflow-x: auto;">${markdown.render(
+            item.content
+          )}</div>`
+          : item.content
+        }
               ${item.role === "assistant" ? actionsButtons : ""}
             </div>
           </div>
         `;
     } else if (item.role === "video_assistant") {
       const links = item.content.links;
-      const video_ids = links.map((link) => getYouTubeID(link));
+      const video_ids = links.map((link) => window.getYouTubeID(link));
       const titles = item.content.titles;
       const language = item.content.language;
 
@@ -806,7 +805,7 @@ const load_conversation = async (conversation_id) => {
           const bubbleId = `bubble-${conversation_id}-${i}`;
           const bubbleElement = document.getElementById(bubbleId);
           if (bubbleElement) {
-            bubbleElement.addEventListener('click', function(e) {
+            bubbleElement.addEventListener('click', function (e) {
               e.preventDefault();
               e.stopPropagation();
               console.log('Loaded bubble clicked, opening links with:', video_ids.join(get_sep), titles.join(get_sep));
@@ -879,7 +878,7 @@ const load_conversations = async (limit, offset, loader) => {
   const conversationsList = document.getElementById('conversationsList');
   if (conversationsList) {
     conversationsList.innerHTML = '';
-    
+
     // Ajouter chaque conversation avec la nouvelle structure
     for (conversation of conversations) {
       conversationsList.innerHTML += `
@@ -929,14 +928,14 @@ document.getElementById(`cancelButton`)?.addEventListener(`click`, async () => {
 document.addEventListener('DOMContentLoaded', () => {
   const userProfile = document.getElementById('userProfile');
   const userMenu = document.getElementById('userMenu');
-  
+
   if (userProfile && userMenu) {
     userProfile.addEventListener('click', (e) => {
       e.stopPropagation();
       const isShowing = userMenu.classList.toggle('show');
       userProfile.classList.toggle('active', isShowing);
     });
-    
+
     // Fermer le menu en cliquant ailleurs
     document.addEventListener('click', (e) => {
       if (!userProfile.contains(e.target) && !userMenu.contains(e.target)) {
@@ -953,7 +952,7 @@ function switchToDiscussions() {
   if (window.workspaceManager && window.workspaceManager.activeCardChat) {
     window.workspaceManager.disconnectFromMainChat();
   }
-  
+
   setActiveNavItem('discussions');
   window.location.href = '/chat/';
 }
@@ -1005,7 +1004,7 @@ function updateNavigationState() {
 // Initialiser l'état de navigation au chargement
 document.addEventListener('DOMContentLoaded', () => {
   updateNavigationState();
-  
+
   // Si on est sur la page de chat, initialiser l'intégration workspace
   if (window.location.pathname.includes('/chat')) {
     initWorkspaceIntegration();
@@ -1063,91 +1062,91 @@ window.onload = async () => {
     });
   }
 
-document.querySelector(".mobile-sidebar")?.addEventListener("click", (event) => {
-  const sidebar = document.querySelector(".conversations");
+  document.querySelector(".mobile-sidebar")?.addEventListener("click", (event) => {
+    const sidebar = document.querySelector(".conversations");
 
-  if (sidebar.classList.contains("shown")) {
-    sidebar.classList.remove("shown");
-    event.target.classList.remove("rotated");
-  } else {
-    sidebar.classList.add("shown");
-    event.target.classList.add("rotated");
-  }
-
-  window.scrollTo(0, 0);
-});
-
-const register_settings_localstorage = async () => {
-  settings_ids = ["model"];
-  settings_elements = settings_ids.map((id) => document.getElementById(id));
-  settings_elements.map((element) =>
-    element.addEventListener(`change`, async (event) => {
-      switch (event.target.type) {
-        case "checkbox":
-          localStorage.setItem(event.target.id, event.target.checked);
-          break;
-        case "select-one":
-          localStorage.setItem(event.target.id, event.target.selectedIndex);
-          break;
-        default:
-          console.warn("Unresolved element type");
-      }
-    })
-  );
-};
-
-const load_settings_localstorage = async () => {
-  settings_ids = ["model"];
-  settings_elements = settings_ids.map((id) => document.getElementById(id));
-  settings_elements.map((element) => {
-    if (localStorage.getItem(element.id)) {
-      switch (element.type) {
-        case "checkbox":
-          element.checked = localStorage.getItem(element.id) === "true";
-          break;
-        case "select-one":
-          element.selectedIndex = parseInt(localStorage.getItem(element.id));
-          break;
-        default:
-          console.warn("Unresolved element type");
-      }
+    if (sidebar.classList.contains("shown")) {
+      sidebar.classList.remove("shown");
+      event.target.classList.remove("rotated");
+    } else {
+      sidebar.classList.add("shown");
+      event.target.classList.add("rotated");
     }
+
+    window.scrollTo(0, 0);
   });
-};
 
-// Theme storage for recurring viewers
-const storeTheme = function (theme) {
-  localStorage.setItem("theme", theme);
-};
+  const register_settings_localstorage = async () => {
+    settings_ids = ["model"];
+    settings_elements = settings_ids.map((id) => document.getElementById(id));
+    settings_elements.map((element) =>
+      element.addEventListener(`change`, async (event) => {
+        switch (event.target.type) {
+          case "checkbox":
+            localStorage.setItem(event.target.id, event.target.checked);
+            break;
+          case "select-one":
+            localStorage.setItem(event.target.id, event.target.selectedIndex);
+            break;
+          default:
+            console.warn("Unresolved element type");
+        }
+      })
+    );
+  };
 
-// set theme when visitor returns
-const setTheme = function () {
-  const activeTheme = localStorage.getItem("theme");
-  colorThemes.forEach((themeOption) => {
-    if (themeOption.id === activeTheme) {
-      themeOption.checked = true;
-    }
-  });
-  // fallback for no :has() support
-  document.documentElement.className = activeTheme;
-  // scroll if requested
-  if (back_scrolly >= 0) {
-    message_box.scrollTo({ top: back_scrolly, behavior: "smooth" });
-  }
-};
+  const load_settings_localstorage = async () => {
+    settings_ids = ["model"];
+    settings_elements = settings_ids.map((id) => document.getElementById(id));
+    settings_elements.map((element) => {
+      if (localStorage.getItem(element.id)) {
+        switch (element.type) {
+          case "checkbox":
+            element.checked = localStorage.getItem(element.id) === "true";
+            break;
+          case "select-one":
+            element.selectedIndex = parseInt(localStorage.getItem(element.id));
+            break;
+          default:
+            console.warn("Unresolved element type");
+        }
+      }
+    });
+  };
 
-colorThemes.forEach((themeOption) => {
-  themeOption.addEventListener("click", () => {
-    storeTheme(themeOption.id);
+  // Theme storage for recurring viewers
+  const storeTheme = function (theme) {
+    localStorage.setItem("theme", theme);
+  };
+
+  // set theme when visitor returns
+  const setTheme = function () {
+    const activeTheme = localStorage.getItem("theme");
+    colorThemes.forEach((themeOption) => {
+      if (themeOption.id === activeTheme) {
+        themeOption.checked = true;
+      }
+    });
     // fallback for no :has() support
-    document.documentElement.className = themeOption.id;
+    document.documentElement.className = activeTheme;
+    // scroll if requested
+    if (back_scrolly >= 0) {
+      message_box.scrollTo({ top: back_scrolly, behavior: "smooth" });
+    }
+  };
+
+  colorThemes.forEach((themeOption) => {
+    themeOption.addEventListener("click", () => {
+      storeTheme(themeOption.id);
+      // fallback for no :has() support
+      document.documentElement.className = themeOption.id;
+    });
   });
-});
 
-document.onload = setTheme();
+  document.onload = setTheme();
 
-// Initialize highlight.js copy button plugin
-hljs.addPlugin(new CopyButtonPlugin());
+  // Initialize highlight.js copy button plugin
+  hljs.addPlugin(new CopyButtonPlugin());
 
-// Initialize library side nav with empty content
-document.getElementsByClassName("library-side-nav-content")[0].innerHTML = '';
+  // Initialize library side nav with empty content
+  document.getElementsByClassName("library-side-nav-content")[0].innerHTML = '';
