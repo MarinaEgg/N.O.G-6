@@ -1,8 +1,13 @@
-// Arrêter si pas sur workspace page
-if (!window.location.pathname.includes('/workspace')) {
-    console.log('Workspace skipped - not on workspace page');
-    return;
-}
+// WORKSPACE.JS - FIX de l'erreur "Illegal return statement"
+// ========== PROTECTION PAGE WORKSPACE ==========
+(function() {
+    // Arrêter si pas sur workspace page
+    if (!window.location.pathname.includes('/workspace')) {
+        console.log('Workspace skipped - not on workspace page');
+        return; // Maintenant LÉGAL car dans une fonction
+    }
+    console.log('Workspace page detected - initializing...');
+})();
 
 // ========== WORKSPACE MANAGER AVEC SYSTÈME MODULAIRE - VERSION FIXÉE ==========
 
