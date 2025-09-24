@@ -1,9 +1,8 @@
-// ========== UTILS.JS - VERSION HYBRIDE ==========
-// Compatibilité globale + ES6 modules pour l'avenir
+// ========== UTILS.JS - VERSION FINALE COMPATIBLE ==========
 
 /**
  * Fonctions utilitaires pour le chat
- * Compatible navigateur classique + modules ES6
+ * Version 100% compatible sans ES6 modules
  */
 
 // UUID Generator
@@ -82,7 +81,7 @@ const ChatUtils = {
   getScrollY
 };
 
-// ========== EXPORTS GLOBAUX (Compatibilité immédiate) ==========
+// ========== EXPORTS GLOBAUX UNIQUEMENT ==========
 window.ChatUtils = ChatUtils;
 window.uuid = generateUUID;
 window.message_id = generateMessageId;
@@ -93,7 +92,7 @@ window.getYouTubeID = extractYouTubeId;
 window.getScrollY = getScrollY;
 
 // Debug log
-console.log('✅ Utils.js loaded (hybrid) - Global functions:', {
+console.log('✅ Utils.js loaded - Global functions:', {
   uuid: typeof window.uuid,
   message_id: typeof window.message_id,
   format: typeof window.format,
@@ -101,32 +100,4 @@ console.log('✅ Utils.js loaded (hybrid) - Global functions:', {
   getScrollY: typeof window.getScrollY
 });
 
-// ========== EXPORTS ES6 (Pour l'avenir) ==========
-// Ces exports ne casseront pas même si ES6 pas supporté
-if (typeof module !== 'undefined' && module.exports) {
-  // Node.js environment
-  module.exports = ChatUtils;
-} else if (typeof window !== 'undefined' && typeof window.define === 'function' && window.define.amd) {
-  // AMD environment
-  window.define([], () => ChatUtils);
-}
-
-// ES6 exports conditionnels - ne cassent pas si pas supportés
-try {
-  if (typeof export !== 'undefined') {
-    export default ChatUtils;
-    export {
-      generateUUID,
-      generateMessageId,
-      hexToAscii,
-      formatText,
-      buildQueryString,
-      getDynamicWarning,
-      extractYouTubeId,
-      getScrollY
-    };
-  }
-} catch (e) {
-  // ES6 pas supporté, pas grave - on a les exports globaux
-  console.log('ES6 modules not supported, using global exports');
-}
+// ========== PAS D'EXPORTS ES6 - SUPPRIMÉ COMPLÈTEMENT ==========
