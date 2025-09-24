@@ -1062,7 +1062,6 @@ window.onload = async () => {
       }
     });
   }
-});
 
 document.querySelector(".mobile-sidebar")?.addEventListener("click", (event) => {
   const sidebar = document.querySelector(".conversations");
