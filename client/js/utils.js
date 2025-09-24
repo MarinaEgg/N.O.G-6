@@ -1,8 +1,9 @@
-// ========== STEP 1 - utils.js (EXTRACTION SÉCURISÉE) ==========
-// Prompt pour Kiro : Extraire ces fonctions utilitaires de chat.js
+// ========== UTILS.JS - VERSION HYBRIDE ==========
+// Compatibilité globale + ES6 modules pour l'avenir
+
 /**
- * Fonctions purement utilitaires - SANS dépendances DOM/globales
- * Peuvent être extraites en premier car aucun risque de régression
+ * Fonctions utilitaires pour le chat
+ * Compatible navigateur classique + modules ES6
  */
 
 // UUID Generator
@@ -19,8 +20,8 @@ const generateUUID = () => {
 
 // Message ID Generator  
 const generateMessageId = () => {
-  random_bytes = (Math.floor(Math.random() * 1338377565) + 2956589730).toString(2);
-  unix = Math.floor(Date.now() / 1000).toString(2);
+  const random_bytes = (Math.floor(Math.random() * 1338377565) + 2956589730).toString(2);
+  const unix = Math.floor(Date.now() / 1000).toString(2);
   return BigInt(`0b${unix}${random_bytes}`).toString();
 };
 
@@ -65,10 +66,11 @@ const extractYouTubeId = (url) => {
 // Scroll Position Utilities
 const getScrollY = (element) => {
   const messageBox = document.getElementById('messages');
+  if (!messageBox) return 0;
   return Math.floor(messageBox.scrollTop + element.getBoundingClientRect().bottom);
 };
 
-// Export pour compatibility + modules
+// Object principal
 const ChatUtils = {
   generateUUID,
   generateMessageId,
@@ -80,7 +82,8 @@ const ChatUtils = {
   getScrollY
 };
 
-// Compatibility globale (maintenir pendant transition)
+// ========== EXPORTS GLOBAUX (Compatibilité immédiate) ==========
+window.ChatUtils = ChatUtils;
 window.uuid = generateUUID;
 window.message_id = generateMessageId;
 window.h2a = hexToAscii;
@@ -89,5 +92,41 @@ window.query = buildQueryString;
 window.getYouTubeID = extractYouTubeId;
 window.getScrollY = getScrollY;
 
-// Export module
-export default ChatUtils;
+// Debug log
+console.log('✅ Utils.js loaded (hybrid) - Global functions:', {
+  uuid: typeof window.uuid,
+  message_id: typeof window.message_id,
+  format: typeof window.format,
+  getYouTubeID: typeof window.getYouTubeID,
+  getScrollY: typeof window.getScrollY
+});
+
+// ========== EXPORTS ES6 (Pour l'avenir) ==========
+// Ces exports ne casseront pas même si ES6 pas supporté
+if (typeof module !== 'undefined' && module.exports) {
+  // Node.js environment
+  module.exports = ChatUtils;
+} else if (typeof window !== 'undefined' && typeof window.define === 'function' && window.define.amd) {
+  // AMD environment
+  window.define([], () => ChatUtils);
+}
+
+// ES6 exports conditionnels - ne cassent pas si pas supportés
+try {
+  if (typeof export !== 'undefined') {
+    export default ChatUtils;
+    export {
+      generateUUID,
+      generateMessageId,
+      hexToAscii,
+      formatText,
+      buildQueryString,
+      getDynamicWarning,
+      extractYouTubeId,
+      getScrollY
+    };
+  }
+} catch (e) {
+  // ES6 pas supporté, pas grave - on a les exports globaux
+  console.log('ES6 modules not supported, using global exports');
+}
