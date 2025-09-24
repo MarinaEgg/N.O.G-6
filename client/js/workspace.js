@@ -1,3 +1,9 @@
+// Arrêter si pas sur workspace page
+if (!window.location.pathname.includes('/workspace')) {
+    console.log('Workspace skipped - not on workspace page');
+    return;
+}
+
 // ========== WORKSPACE MANAGER AVEC SYSTÈME MODULAIRE - VERSION FIXÉE ==========
 
 class WorkspaceManager {
