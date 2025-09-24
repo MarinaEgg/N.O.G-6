@@ -1150,3 +1150,4 @@ window.onload = async () => {
 
   // Initialize library side nav with empty content
   document.getElementsByClassName("library-side-nav-content")[0].innerHTML = '';
+};
