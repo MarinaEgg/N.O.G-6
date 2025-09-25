@@ -54,6 +54,8 @@ class ModernChatBar {
     }
 
     setupTextareaResize() {
+        if (!this.textarea) return;
+        
         this.textarea.addEventListener('input', () => {
             this.resizeTextarea();
         });
@@ -115,24 +117,30 @@ class ModernChatBar {
         
         if (this.plusButton) {
             console.log('Adding event listener to plus button');
-            this.plusButton.addEventListener('click', (e) => {
+            // Vérifier qu'il n'y a pas déjà un event listener
+            this.plusButton.removeEventListener('click', this._plusButtonHandler);
+            this._plusButtonHandler = (e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 console.log('Plus button clicked!');
                 this.toggleMenu('plus');
-            });
+            };
+            this.plusButton.addEventListener('click', this._plusButtonHandler);
         } else {
             console.error('Plus button not found!');
         }
 
         if (this.connectorButton) {
             console.log('Adding event listener to connector button');
-            this.connectorButton.addEventListener('click', (e) => {
+            // Vérifier qu'il n'y a pas déjà un event listener
+            this.connectorButton.removeEventListener('click', this._connectorButtonHandler);
+            this._connectorButtonHandler = (e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 console.log('Connector button clicked!');
                 this.toggleMenu('connector');
-            });
+            };
+            this.connectorButton.addEventListener('click', this._connectorButtonHandler);
         } else {
             console.error('Connector button not found!');
         }
@@ -167,8 +175,10 @@ class ModernChatBar {
         }
         
         // Appliquer les positions
+        menu.style.position = 'fixed';
         menu.style.top = `${top}px`;
         menu.style.left = `${left}px`;
+        menu.style.zIndex = '10000';
     }
 
     toggleMenu(type) {
@@ -203,11 +213,16 @@ class ModernChatBar {
     }
 
     setupClickOutside() {
-        document.addEventListener('click', (e) => {
+        // Utiliser une référence pour pouvoir la supprimer
+        this._clickOutsideHandler = (e) => {
             if (!e.target.closest('.modern-chat-bar')) {
                 this.closeAllMenus();
             }
-        });
+        };
+        
+        // Supprimer l'ancien event listener s'il existe
+        document.removeEventListener('click', this._clickOutsideHandler);
+        document.addEventListener('click', this._clickOutsideHandler);
     }
 
     setupDragAndDrop() {
@@ -215,34 +230,46 @@ class ModernChatBar {
         
         let dragCounter = 0;
 
-        document.addEventListener('dragenter', (e) => {
+        const dragEnterHandler = (e) => {
             e.preventDefault();
             dragCounter++;
             this.dragDropOverlay.classList.add('active');
-        });
+        };
 
-        document.addEventListener('dragleave', (e) => {
+        const dragLeaveHandler = (e) => {
             e.preventDefault();
             dragCounter--;
             if (dragCounter === 0) {
                 this.dragDropOverlay.classList.remove('active');
             }
-        });
+        };
 
-        document.addEventListener('dragover', (e) => {
+        const dragOverHandler = (e) => {
             e.preventDefault();
-        });
+        };
 
-        document.addEventListener('drop', (e) => {
+        const dropHandler = (e) => {
             e.preventDefault();
             dragCounter = 0;
             this.dragDropOverlay.classList.remove('active');
             this.handleFileDrop(e.dataTransfer.files);
-        });
+        };
+
+        // Supprimer les anciens event listeners
+        document.removeEventListener('dragenter', dragEnterHandler);
+        document.removeEventListener('dragleave', dragLeaveHandler);
+        document.removeEventListener('dragover', dragOverHandler);
+        document.removeEventListener('drop', dropHandler);
+
+        // Ajouter les nouveaux
+        document.addEventListener('dragenter', dragEnterHandler);
+        document.addEventListener('dragleave', dragLeaveHandler);
+        document.addEventListener('dragover', dragOverHandler);
+        document.addEventListener('drop', dropHandler);
     }
 
     setupKeyboardShortcuts() {
-        document.addEventListener('keydown', (e) => {
+        this._keydownHandler = (e) => {
             if (e.ctrlKey || e.metaKey) {
                 switch (e.key) {
                     case 'u':
@@ -255,7 +282,11 @@ class ModernChatBar {
                         break;
                 }
             }
-        });
+        };
+
+        // Supprimer l'ancien event listener
+        document.removeEventListener('keydown', this._keydownHandler);
+        document.addEventListener('keydown', this._keydownHandler);
     }
 
     handleFileDrop(files) {
@@ -398,6 +429,23 @@ class ModernChatBar {
            this.resizeTextarea();
        }
    }
+
+   // Méthode de nettoyage pour éviter les fuites mémoire
+   destroy() {
+       // Supprimer les event listeners
+       if (this._plusButtonHandler && this.plusButton) {
+           this.plusButton.removeEventListener('click', this._plusButtonHandler);
+       }
+       if (this._connectorButtonHandler && this.connectorButton) {
+           this.connectorButton.removeEventListener('click', this._connectorButtonHandler);
+       }
+       if (this._clickOutsideHandler) {
+           document.removeEventListener('click', this._clickOutsideHandler);
+       }
+       if (this._keydownHandler) {
+           document.removeEventListener('keydown', this._keydownHandler);
+       }
+   }
 }
 
 // Fonctions globales pour compatibilité avec les onclick dans le HTML
@@ -434,12 +482,6 @@ function handleAddConnectors() {
 function handleIManageConnection() {
    if (window.modernChatBar) {
        window.modernChatBar.handleIManageConnection();
-   }
-}
-
-function sendMessage() {
-   if (window.modernChatBar) {
-       window.modernChatBar.sendMessage();
    }
 }
 
