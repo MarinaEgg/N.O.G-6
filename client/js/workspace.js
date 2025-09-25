@@ -66,7 +66,7 @@ class WorkspaceManager {
             return;
         }
 
-        // 🔧 FIX : Initialiser le système de cartes AVANT les event listeners
+        // Initialiser le système de cartes AVANT les event listeners
         if (typeof CardSystem !== 'undefined') {
             this.cardSystem = new CardSystem(this);
         } else {
@@ -98,19 +98,19 @@ class WorkspaceManager {
     }
 
     setupEventListeners() {
-        console.log('🔧 Setting up event listeners...');
-        console.log('🔧 addCardBtn found:', !!this.addCardBtn);
-        console.log('🔧 cardSystem available:', !!this.cardSystem);
-        console.log('🔧 floatingMenu available:', !!this.floatingMenu);
+        console.log('Setting up event listeners...');
+        console.log('addCardBtn found:', !!this.addCardBtn);
+        console.log('cardSystem available:', !!this.cardSystem);
+        console.log('floatingMenu available:', !!this.floatingMenu);
         
-        // 🔧 FIX : Appeler la bonne méthode avec debug
+        // Appeler la bonne méthode avec debug
         this.addCardBtn?.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            console.log('🎯 Bouton ajouter carte cliqué - addCardBtn trouvé:', !!this.addCardBtn);
-            console.log('🎯 CardSystem disponible:', !!this.cardSystem);
-            console.log('🎯 TextCard disponible:', typeof TextCard !== 'undefined');
-            console.log('🎯 FileCard disponible:', typeof FileCard !== 'undefined');
+            console.log('Bouton ajouter carte cliqué - addCardBtn trouvé:', !!this.addCardBtn);
+            console.log('CardSystem disponible:', !!this.cardSystem);
+            console.log('TextCard disponible:', typeof TextCard !== 'undefined');
+            console.log('FileCard disponible:', typeof FileCard !== 'undefined');
             this.showCardTypeSelector();
         });
         
@@ -123,7 +123,7 @@ class WorkspaceManager {
         document.addEventListener('mousemove', (e) => this.handleGlobalMouseMove(e));
         document.addEventListener('mouseup', () => this.handleGlobalMouseUp());
         
-        // 🔧 FIX : Escape pour fermer les modals
+        // Escape pour fermer les modals
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 this.hideCardTypeSelector();
@@ -153,10 +153,10 @@ class WorkspaceManager {
         });
     }
 
-    // ========== FIX : SÉLECTEUR DE TYPE DE CARTE - VERSION CORRIGÉE ==========
+    // ========== SÉLECTEUR DE TYPE DE CARTE - VERSION CORRIGÉE ==========
     
     showCardTypeSelector() {
-        console.log('🎯 showCardTypeSelector appelée');
+        console.log('showCardTypeSelector appelée');
         
         // Supprimer l'ancien overlay s'il existe
         const existingOverlay = document.querySelector('.modal-overlay');
@@ -200,7 +200,7 @@ class WorkspaceManager {
         
         // Events
         overlay.addEventListener('click', () => {
-            console.log('🎯 Overlay cliqué - fermeture');
+            console.log('Overlay cliqué - fermeture');
             this.hideCardTypeSelector();
         });
         
@@ -209,7 +209,7 @@ class WorkspaceManager {
         // Bouton fermer
         const cancelBtn = selector.querySelector('.selector-cancel');
         cancelBtn.addEventListener('click', () => {
-            console.log('🎯 Bouton cancel cliqué');
+            console.log('Bouton cancel cliqué');
             this.hideCardTypeSelector();
         });
         
@@ -217,7 +217,7 @@ class WorkspaceManager {
         selector.querySelectorAll('.card-type-option').forEach(option => {
             option.addEventListener('click', () => {
                 const cardType = option.getAttribute('data-type');
-                console.log('🎯 Type sélectionné:', cardType);
+                console.log('Type sélectionné:', cardType);
                 this.createCardOfType(cardType);
                 this.hideCardTypeSelector();
             });
@@ -227,58 +227,58 @@ class WorkspaceManager {
         document.body.appendChild(overlay);
         overlay.appendChild(selector);
         
-        console.log('🎯 Modal ajoutée au DOM');
+        console.log('Modal ajoutée au DOM');
     }
 
     hideCardTypeSelector() {
-        console.log('🎯 hideCardTypeSelector appelée');
+        console.log('hideCardTypeSelector appelée');
         const overlay = document.querySelector('.modal-overlay');
         if (overlay) {
             overlay.remove();
-            console.log('🎯 Modal supprimée');
+            console.log('Modal supprimée');
         }
     }
 
     createCardOfType(type) {
-        console.log('🎯 Création carte type:', type);
+        console.log('Création carte type:', type);
         
-        // 🔧 FIX : Vérifier que le système de cartes est initialisé
+        // Vérifier que le système de cartes est initialisé
         if (!this.cardSystem) {
-            console.error('❌ Card system not initialized');
+            console.error('Card system not initialized');
             return;
         }
         
         let cardData;
         const position = this.getNewCardPosition();
         
-        // 🔧 FIX : Vérifier que les classes existent
+        // Vérifier que les classes existent
         if (type === 'text') {
             if (typeof TextCard === 'undefined') {
-                console.error('❌ TextCard class not found - script pas chargé');
+                console.error('TextCard class not found - script pas chargé');
                 alert('Erreur: TextCard non trouvée. Vérifiez que text-card.js est chargé.');
                 return;
             }
             cardData = TextCard.createDefaultTextCard(position);
         } else if (type === 'file') {
             if (typeof FileCard === 'undefined') {
-                console.error('❌ FileCard class not found - script pas chargé');
+                console.error('FileCard class not found - script pas chargé');
                 alert('Erreur: FileCard non trouvée. Vérifiez que file-card.js est chargé.');
                 return;
             }
             cardData = FileCard.createDefaultFileCard(position);
         } else {
-            console.error('❌ Type de carte inconnu:', type);
+            console.error('Type de carte inconnu:', type);
             return;
         }
         
-        console.log('🎯 Données carte:', cardData);
+        console.log('Données carte:', cardData);
         
         const card = this.cardSystem.createCard(cardData);
         if (card) {
             this.cards.push({ element: card.element, data: card.data, cardInstance: card });
-            console.log('✅ Carte créée avec succès:', type);
+            console.log('Carte créée avec succès:', type);
         } else {
-            console.error('❌ Échec création carte');
+            console.error('Échec création carte');
         }
     }
 
@@ -353,7 +353,7 @@ class WorkspaceManager {
         this.dragOffset = { x: 0, y: 0 };
     }
 
-    // ========== MÉTHODES CANVAS INCHANGÉES ==========
+    // ========== MÉTHODES CANVAS ==========
     
     handleCanvasMouseDown(e) {
         if (e.target.closest('.workspace-card')) {
@@ -421,7 +421,7 @@ class WorkspaceManager {
         this.canvas.style.backgroundPosition = `${bgX}px ${bgY}px`;
     }
 
-    // ========== MÉTHODES ZOOM INCHANGÉES ==========
+    // ========== MÉTHODES ZOOM ==========
     
     initZoom() {
         this.createZoomControls();
@@ -508,264 +508,14 @@ class WorkspaceManager {
     // ========== CHARGEMENT DES CARTES PAR DÉFAUT ADAPTÉ ==========
 
     loadDefaultCards() {
-        console.log('🎯 Workspace vierge - prêt pour création manuelle');
+        console.log('Workspace vierge - prêt pour création manuelle');
         
         if (!this.cardSystem) {
-            console.error('❌ Card system not ready');
+            console.error('Card system not ready');
             return;
         }
         
-        // TODO: Future intégration iManage
-        // Structure attendue :
-        // - Custom1 = Client level
-        // - Custom2 = Workspace/Dossier level  
-        // - Folders = Répertoires (tags sur cartes)
-        // - Documents = Cartes individuelles
-        // this.loadFromiManageWorkspace(workspaceId);
-        
-        console.log('✅ Workspace prêt - 0 cartes chargées');
-    }
-
-    // ========== IMANAGE INTEGRATION ==========
-
-    /**
-     * Loads documents from iManage workspace and creates corresponding cards
-     * @param {string} workspaceId - ID of the iManage workspace
-     * @param {string} customerId - ID of the customer in iManage
-     * @param {string} libraryId - ID of the library in iManage
-     * @returns {Promise<void>}
-     */
-    async loadFromiManageWorkspace(workspaceId, customerId, libraryId) {
-        try {
-            console.log(`🔄 Loading documents from iManage workspace ${workspaceId}...`);
-            
-            // Show loading state
-            this.showLoadingState(true);
-            
-            // Call iManage API to get workspace documents
-            const response = await fetch(`/api/v2/customers/${customerId}/libraries/${libraryId}/workspaces/${workspaceId}`);
-            
-            if (!response.ok) {
-                throw new Error(`Failed to load workspace: ${response.statusText}`);
-            }
-            
-            const workspaceData = await response.json();
-            
-            // Clear existing cards if needed
-            // this.clearWorkspace();
-            
-            // Create cards for each document
-            const createCardPromises = workspaceData.documents.map(async (doc) => {
-                const cardData = {
-                    id: `imanage-${doc.id}`,
-                    type: this.mapDocumentTypeToCardType(doc.type),
-                    title: doc.name || 'Sans titre',
-                    iManageId: doc.id,
-                    iManageVersion: doc.version,
-                    clientLevel: doc.custom1, // Custom1 = Client level
-                    workspaceLevel: doc.custom2, // Custom2 = Workspace level
-                    documentType: doc.type,
-                    author: doc.author,
-                    lastModified: doc.modifiedDate,
-                    size: doc.size,
-                    classification: doc.classification || 'Internal',
-                    syncStatus: 'synced',
-                    lastSync: new Date().toISOString(),
-                    metadata: {
-                        documentNumber: doc.documentNumber,
-                        description: doc.description
-                    },
-                    // Map iManage folders to our folders/tags
-                    folders: doc.folders || []
-                };
-                
-                return this.cardSystem.createCard(cardData);
-            });
-            
-            await Promise.all(createCardPromises);
-            console.log(`✅ Successfully loaded ${workspaceData.documents.length} documents from iManage`);
-            
-        } catch (error) {
-            console.error('❌ Error loading from iManage:', error);
-            this.showError(`Erreur lors du chargement depuis iManage: ${error.message}`);
-            throw error;
-        } finally {
-            this.showLoadingState(false);
-        }
-    }
-    
-    /**
-     * Maps iManage document types to our card types
-     * @private
-     * @param {string} imanageType - iManage document type
-     * @returns {string} Our card type
-     */
-    mapDocumentTypeToCardType(imanageType) {
-        const typeMap = {
-            'word': 'text',
-            'excel': 'file',
-            'pdf': 'file',
-            'email': 'email',
-            'powerpoint': 'file'
-        };
-        
-        return typeMap[imanageType?.toLowerCase()] || 'file';
-    }
-    
-    /**
-     * Synchronizes local changes with iManage
-     * @returns {Promise<void>}
-     */
-    async syncWithiManage() {
-        try {
-            console.log('🔄 Syncing with iManage...');
-            this.showLoadingState(true, 'Synchronisation avec iManage en cours...');
-            
-            // Get all modified or conflicted cards
-            const cardsToSync = Array.from(this.cardSystem.cards.values())
-                .filter(card => 
-                    card.data.syncStatus === 'modified' || 
-                    card.data.syncStatus === 'conflict'
-                );
-            
-            if (cardsToSync.length === 0) {
-                console.log('✅ No changes to sync with iManage');
-                return;
-            }
-            
-            // Process each modified/conflicted card
-            for (const card of cardsToSync) {
-                try {
-                    // Update sync status to pending
-                    card.updateSyncStatus('pending');
-                    
-                    // Prepare document data for iManage
-                    const documentData = {
-                        id: card.data.iManageId,
-                        name: card.data.title,
-                        content: card.getContentForSync(), // Card class should implement this
-                        metadata: {
-                            ...card.data.metadata,
-                            custom1: card.data.clientLevel,
-                            custom2: card.data.workspaceLevel,
-                            folders: card.data.folders
-                        }
-                    };
-                    
-                    // Call iManage API to update document
-                    const response = await fetch(`/api/v2/documents/${card.data.iManageId}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(documentData)
-                    });
-                    
-                    if (!response.ok) {
-                        throw new Error(`Failed to sync document ${card.data.id}: ${response.statusText}`);
-                    }
-                    
-                    // Update sync status and timestamp
-                    card.updateSyncStatus('synced');
-                    card.data.lastSync = new Date().toISOString();
-                    
-                } catch (error) {
-                    console.error(`❌ Error syncing card ${card.data.id}:`, error);
-                    card.updateSyncStatus('conflict');
-                    throw error;
-                }
-            }
-            
-            console.log(`✅ Successfully synced ${cardsToSync.length} documents with iManage`);
-            
-        } catch (error) {
-            console.error('❌ Error during iManage sync:', error);
-            this.showError(`Erreur lors de la synchronisation avec iManage: ${error.message}`);
-            throw error;
-        } finally {
-            this.showLoadingState(false);
-        }
-    }
-    
-    /**
-     * Resolves version conflicts between local and iManage versions
-     * @param {string} cardId - ID of the card with conflicts
-     * @param {'local'|'remote'|'merge'} resolution - Resolution strategy
-     * @returns {Promise<void>}
-     */
-    async resolveConflicts(cardId, resolution) {
-        const card = this.cardSystem.getCard(cardId);
-        if (!card) {
-            throw new Error(`Card not found: ${cardId}`);
-        }
-        
-        try {
-            card.updateSyncStatus('pending');
-            
-            switch (resolution) {
-                case 'local':
-                    // Keep local version and force push to iManage
-                    await this.syncWithiManage();
-                    break;
-                    
-                case 'remote':
-                    // Discard local changes and reload from iManage
-                    await this.loadFromiManageWorkspace(
-                        card.data.workspaceId,
-                        card.data.customerId,
-                        card.data.libraryId
-                    );
-                    break;
-                    
-                case 'merge':
-                    // Advanced merge logic would go here
-                    // This is a placeholder for actual merge implementation
-                    console.log('Merge resolution not yet implemented');
-                    break;
-                    
-                default:
-                    throw new Error(`Invalid resolution strategy: ${resolution}`);
-            }
-            
-            card.updateSyncStatus('synced');
-            
-        } catch (error) {
-            console.error(`❌ Error resolving conflicts for card ${cardId}:`, error);
-            card.updateSyncStatus('conflict');
-            throw error;
-        }
-    }
-    
-    /**
-     * Shows a loading state in the UI
-     * @private
-     * @param {boolean} isLoading - Whether to show or hide loading state
-     * @param {string} [message] - Optional loading message
-     */
-    showLoadingState(isLoading, message = '') {
-        // Implement loading state UI updates here
-        const loadingElement = document.getElementById('loading-indicator');
-        if (loadingElement) {
-            loadingElement.style.display = isLoading ? 'flex' : 'none';
-            if (message) {
-                const messageElement = loadingElement.querySelector('.loading-message');
-                if (messageElement) {
-                    messageElement.textContent = message;
-                }
-            }
-        }
-    }
-    
-    /**
-     * Shows an error message in the UI
-     * @private
-     * @param {string} message - Error message to display
-     */
-    showError(message) {
-        // Implement error display logic here
-        console.error('Error:', message);
-        // Example: Show a toast notification
-        if (window.showToast) {
-            window.showToast(message, 'error');
-        }
+        console.log('Workspace prêt - 0 cartes chargées');
     }
 
     // ========== MÉTHODES UTILITAIRES ADAPTÉES ==========
@@ -948,7 +698,7 @@ class WorkspaceManager {
             const token = this.generateMessageId();
             card.addDocumentSection("", token);
             
-            // ⚡ VERSION SIMPLIFIÉE - pas d'enrichissement
+            // VERSION SIMPLIFIÉE - pas d'enrichissement
             const documentPrompt = this.buildDocumentPrompt(message, cardId);
             await this.streamToDocument(documentPrompt, cardId, token, card);
             
@@ -1033,7 +783,7 @@ class WorkspaceManager {
             "Contexte : Document \"" + cardTitle + "\"\n" +
             "Contenu existant : " + existingContent + "\n\n" +
             "Instruction : " + userMessage + "\n\n" +
-            "⚡ IMPORTANTE - COMMANDES JAVASCRIPT :\n" +
+            "IMPORTANTE - COMMANDES JAVASCRIPT :\n" +
             "- Pour changer le titre du document, utilise EXACTEMENT ce format :\n" +
             "```javascript\n" +
             "card.setTitle(\"Nouveau Titre\");\n" +
@@ -1051,10 +801,6 @@ class WorkspaceManager {
             "Si tu veux changer le titre, mets le code JavaScript AU DÉBUT de ta réponse.";
             
         return prompt;
-    }
-
-    generateSectionTitle(message) {
-        return "Contenu généré"; // Titre générique car plus affiché
     }
 
     generateMessageId() {
@@ -1076,9 +822,6 @@ class WorkspaceManager {
             this.showCardTypeSelector();
         }
     }
-
-    // ========== MÉTHODES DEBUG ==========
-
 }
 
 // ========== INITIALISATION GLOBALE ==========
