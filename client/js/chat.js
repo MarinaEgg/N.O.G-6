@@ -1,5 +1,6 @@
-// ========== CHAT.JS - MAIN CHAT MODULE ==========
+// ========== CHAT.JS - CORRECTIONS CRITIQUES ==========
 // DEPENDENCIES: utils.js must be loaded before this file
+
 // ========== PATCH CHAT.JS POUR INTÉGRATION WORKSPACE ==========
 // Fonction pour détecter si on est sur workspace
 const isWorkspacePage = () => {
@@ -82,40 +83,10 @@ const initWorkspaceIntegration = () => {
   }
 };
 
-// AMÉLIORATION : Gestion des conversations workspace dans localStorage
-const getWorkspaceConversations = () => {
-  const conversations = [];
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    if (key.startsWith('workspace-card-')) {
-      try {
-        const conversation = JSON.parse(localStorage.getItem(key));
-        conversations.push(conversation);
-      } catch (e) {
-        console.warn('Conversation workspace corrompue:', key);
-      }
-    }
-  }
-  return conversations;
-};
-
-// NOUVELLE FONCTION : Nettoyer les conversations workspace
-const cleanWorkspaceConversations = () => {
-  const keys = Object.keys(localStorage);
-  keys.forEach(key => {
-    if (key.startsWith('workspace-card-')) {
-      localStorage.removeItem(key);
-    }
-  });
-  console.log('Conversations workspace nettoyées');
-};
-
 // Export des fonctions utilitaires pour le workspace
 window.workspaceUtils = {
   isWorkspacePage,
   isCardChatActive,
-  getWorkspaceConversations,
-  cleanWorkspaceConversations
 };
 
 // Initialize sidebar when DOM is loaded
@@ -167,9 +138,13 @@ const greetingMessages = {
 };
 
 hljs.addPlugin(new CopyButtonPlugin());
-document.getElementsByClassName("library-side-nav-content")[0].innerHTML = '';
 
-class_last_message_assistant = "last-message-assistant";
+// S'assurer que l'élément existe avant de l'accéder
+if (document.getElementsByClassName("library-side-nav-content")[0]) {
+  document.getElementsByClassName("library-side-nav-content")[0].innerHTML = '';
+}
+
+const class_last_message_assistant = "last-message-assistant";
 
 // format function moved to utils.js
 
@@ -278,7 +253,7 @@ const ask_gpt = async (message) => {
     window.scrollTo(0, 0);
     window.controller = new AbortController();
 
-    model = document.getElementById("model");
+    const model = document.getElementById("model");
     prompt_lock = true;
     window.text = ``;
     window.token = window.message_id();
@@ -289,7 +264,7 @@ const ask_gpt = async (message) => {
 
     message_box.innerHTML += `
             <div class="message message-user">
-                <div class="content" id="user_${token}">
+                <div class="content" id="user_${window.token}">
                     ${window.format(message)}
                 </div>
             </div>`;
@@ -384,7 +359,7 @@ const ask_gpt = async (message) => {
     };
 
     let links = [];
-    language = "fr";
+    let language = "fr";
     while (true) {
       const { value, done } = await reader.read();
 
@@ -554,7 +529,7 @@ function createVideoSourceBubble(url, title, index, allVideoIds, allTitles) {
 }
 
 async function writeRAGConversation(links, text, language) {
-  responseContent = text;
+  const responseContent = text;
 
   document.querySelectorAll(`code`).forEach((el) => {
     hljs.highlightElement(el);
@@ -629,14 +604,12 @@ async function fetchVideoTitle(videoID) {
   );
   if (response.ok) {
     const data = await response.json();
-    title = data.title;
+    const title = data.title;
     const cleanTitle = title.replace(/^\d+ - /, "");
     return cleanTitle; // Return the title of the video
   }
   return null;
 }
-
-// getScrollY function moved to utils.js
 
 const clear_conversations = async () => {
   const conversationsList = document.getElementById('conversationsList');
@@ -662,8 +635,6 @@ const clear_conversations = async () => {
     }
   }
 };
-
-// getYouTubeID function moved to utils.js
 
 const clear_conversation = async () => {
   let messages = message_box.getElementsByTagName(`div`);
@@ -1013,16 +984,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 console.log('🔧 Patch chat.js pour workspace appliqué');
 
-// h2a function moved to utils.js
-
-// uuid function moved to utils.js
-
-// message_id function moved to utils.js
-
 window.onload = async () => {
   load_settings_localstorage();
 
-  conversations = 0;
+  let conversations = 0;
   for (let i = 0; i < localStorage.length; i++) {
     if (localStorage.key(i).startsWith("conversation:")) {
       conversations += 1;
@@ -1076,9 +1041,39 @@ window.onload = async () => {
     window.scrollTo(0, 0);
   });
 
+  // Theme storage for recurring viewers
+  const storeTheme = function (theme) {
+    localStorage.setItem("theme", theme);
+  };
+
+  // set theme when visitor returns
+  const setTheme = function () {
+    const activeTheme = localStorage.getItem("theme");
+    colorThemes.forEach((themeOption) => {
+      if (themeOption.id === activeTheme) {
+        themeOption.checked = true;
+      }
+    });
+    // fallback for no :has() support
+    document.documentElement.className = activeTheme;
+    // scroll if requested
+    if (typeof back_scrolly !== 'undefined' && back_scrolly >= 0) {
+      message_box.scrollTo({ top: back_scrolly, behavior: "smooth" });
+    }
+  };
+
+  colorThemes.forEach((themeOption) => {
+    themeOption.addEventListener("click", () => {
+      storeTheme(themeOption.id);
+      // fallback for no :has() support
+      document.documentElement.className = themeOption.id;
+    });
+  });
+
+  // FIX: Déplacer les fonctions locales avant leur appel
   const register_settings_localstorage = async () => {
-    settings_ids = ["model"];
-    settings_elements = settings_ids.map((id) => document.getElementById(id));
+    const settings_ids = ["model"];
+    const settings_elements = settings_ids.map((id) => document.getElementById(id));
     settings_elements.map((element) =>
       element.addEventListener(`change`, async (event) => {
         switch (event.target.type) {
@@ -1096,10 +1091,10 @@ window.onload = async () => {
   };
 
   const load_settings_localstorage = async () => {
-    settings_ids = ["model"];
-    settings_elements = settings_ids.map((id) => document.getElementById(id));
+    const settings_ids = ["model"];
+    const settings_elements = settings_ids.map((id) => document.getElementById(id));
     settings_elements.map((element) => {
-      if (localStorage.getItem(element.id)) {
+      if (element && localStorage.getItem(element.id)) {
         switch (element.type) {
           case "checkbox":
             element.checked = localStorage.getItem(element.id) === "true";
@@ -1114,40 +1109,13 @@ window.onload = async () => {
     });
   };
 
-  // Theme storage for recurring viewers
-  const storeTheme = function (theme) {
-    localStorage.setItem("theme", theme);
-  };
-
-  // set theme when visitor returns
-  const setTheme = function () {
-    const activeTheme = localStorage.getItem("theme");
-    colorThemes.forEach((themeOption) => {
-      if (themeOption.id === activeTheme) {
-        themeOption.checked = true;
-      }
-    });
-    // fallback for no :has() support
-    document.documentElement.className = activeTheme;
-    // scroll if requested
-    if (back_scrolly >= 0) {
-      message_box.scrollTo({ top: back_scrolly, behavior: "smooth" });
-    }
-  };
-
-  colorThemes.forEach((themeOption) => {
-    themeOption.addEventListener("click", () => {
-      storeTheme(themeOption.id);
-      // fallback for no :has() support
-      document.documentElement.className = themeOption.id;
-    });
-  });
-
   document.onload = setTheme();
 
   // Initialize highlight.js copy button plugin
   hljs.addPlugin(new CopyButtonPlugin());
 
   // Initialize library side nav with empty content
-  document.getElementsByClassName("library-side-nav-content")[0].innerHTML = '';
+  if (document.getElementsByClassName("library-side-nav-content")[0]) {
+    document.getElementsByClassName("library-side-nav-content")[0].innerHTML = '';
+  }
 };
