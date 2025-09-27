@@ -1,13 +1,10 @@
 // ========== WORKSPACE.JS - VERSION CORRIGÉE AVEC PROTECTION ==========
 
-// PROTECTION CRITIQUE - mais allow initialization sur workspace
+// PROTECTION CRITIQUE : Arrêter l'exécution si pas sur workspace page
 (function() {
-    const isWorkspace = window.location.pathname.includes('/workspace');
-    if (!isWorkspace) {
+    if (!window.location.pathname.includes('/workspace')) {
         console.log('🚫 Not on workspace page - workspace.js skipped');
-        // IMPORTANT : ne pas utiliser return ici, juste skipper l'init
-        window.workspaceManager = null;
-        return;
+        return; // Arrêter complètement l'exécution du reste du script
     }
     console.log('✅ Workspace page detected - initializing...');
 })();
