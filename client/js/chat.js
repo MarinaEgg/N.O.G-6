@@ -206,214 +206,90 @@ function closeLinks() {
 }
 
 const ask_gpt = async (message) => {
-  try {
-    message_input.value = ``;
-    message_input.innerHTML = ``;
-    message_input.innerText = ``;
+  return await window.conversationManager.sendMessage(message);
+};
 
-    await window.storageManager.addConversation(window.conversation_id, message.substr(0, 20));
-    window.scrollTo(0, 0);
-    window.controller = new AbortController();
+const load_conversation = async (conversation_id) => {
+  let conversation = {
+    items: await window.storageManager.getConversation(conversation_id)
+  };
 
-    const model = document.getElementById("model");
-    prompt_lock = true;
-    window.text = ``;
-    // CORRECTION: Utiliser window.message_id depuis utils.js
-    window.token = window.message_id();
-
-    if (stop_generating) {
-      stop_generating.classList.remove(`stop_generating-hidden`);
-    }
-
-    message_box.innerHTML += `
-            <div class="message message-user">
-                <div class="content" id="user_${window.token}">
-                    ${window.format(message)}
-                </div>
-            </div>`;
-
-    message_box.scrollTop = message_box.scrollHeight;
-    window.scrollTo(0, 0);
-    await new Promise((r) => setTimeout(r, 500));
-    window.scrollTo(0, 0);
-
-    message_box.innerHTML += `
-            <div class="message message-assistant">
-            ${shape.replace(
-      'id="shape"',
-      `id="shape_assistant_${window.token}"`
-    )}
-                  ${loading_video.replace(
-      'id="nog_video"',
-      `id="assistant_${window.token}"`
-    )}
-                <div class="content" id="imanage_${window.token}">
-                    <div id="cursor"></div>
-                </div>
+  conversation?.items.forEach((item) => {
+    const messageAlignmentClass =
+      item.role === "user" ? "message-user" : "message-assistant";
+    const img = item.image;
+    if (item.role === "user" || item.role === "assistant") {
+      message_box.innerHTML += `
+          <div class="message ${messageAlignmentClass}">
+            ${img}
+            <div class="content">
+              ${item.role === "assistant"
+          ? `<div class="assistant-content" style="word-wrap: break-word; max-width: 100%; overflow-x: auto;">${markdown.render(
+            item.content
+          )}</div>`
+          : item.content
+        }
+              ${item.role === "assistant" ? actionsButtons : ""}
             </div>
+          </div>
         `;
+    } else if (item.role === "video_assistant") {
+      const links = item.content.links;
+      const video_ids = links.map((link) => window.getYouTubeID(link));
+      const titles = item.content.titles;
+      const language = item.content.language;
 
-    message_box.scrollTop = message_box.scrollHeight;
-    window.scrollTo(0, 0);
-    await new Promise((r) => setTimeout(r, 1000));
-    window.scrollTo(0, 0);
-
-    const response = await fetch(`/backend-api/v2/conversation`, {
-      method: `POST`,
-      signal: window.controller.signal,
-      headers: {
-        "content-type": `application/json`,
-        accept: `text/event-stream`,
-      },
-      body: JSON.stringify({
-        conversation_id: window.conversation_id,
-        action: `_ask`,
-        model: model.options[model.selectedIndex]?.value,
-        meta: {
-          id: window.token,
-          content: {
-            conversation: await window.storageManager.getConversation(window.conversation_id),
-            content_type: "text",
-            parts: [
-              {
-                content: message,
-                role: "user",
-              },
-            ],
-          },
-        },
-      }),
-    });
-
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = "";
-    let text = "";
-    let pendingText = "";
-    let isProcessing = false;
-    const TYPING_SPEED = 7;
-
-    const processPendingText = async (newText = "") => {
-      if (newText) {
-        pendingText += newText;
+      let videoSourcesHTML = '<div class="video-sources-container">';
+      for (let i = 0; i < Math.min(links.length, 3); i++) {
+        const bubbleId = `bubble-${conversation_id}-${i}`;
+        videoSourcesHTML += `
+          <div class="video-source-bubble" data-index="${i}" id="${bubbleId}">
+            <div class="video-source-title">
+              <svg class="youtube-icon" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+              </svg>
+              <span>${titles[i]}</span>
+            </div>
+            <p class="video-source-url">${links[i]}</p>
+          </div>
+        `;
       }
+      videoSourcesHTML += '</div>';
 
-      if (isProcessing) {
-        return;
-      }
+      message_box.innerHTML += `
+        <div class="message message-assistant">
+          ${img}
+          <div class="content">
+            ${videoSourcesHTML}
+          </div>
+        </div>`;
 
-      isProcessing = true;
-      while (pendingText.length > 0) {
-        const chars = pendingText.split("");
-        pendingText = "";
-
-        for (const char of chars) {
-          text += char;
-          document.getElementById(`imanage_${window.token}`).innerHTML =
-            marked.parse(text);
-          document.getElementById(
-            `imanage_${window.token}`
-          ).lastElementChild.innerHTML += loadingStream;
-          message_box.scrollTop = message_box.scrollHeight;
-          await new Promise((resolve) => setTimeout(resolve, TYPING_SPEED));
-        }
-      }
-      isProcessing = false;
-    };
-
-    let links = [];
-    let language = "fr";
-    while (true) {
-      const { value, done } = await reader.read();
-
-      if (done) break;
-
-      // Decode chunk and add to buffer
-      buffer += decoder.decode(value, { stream: true });
-
-      // Process buffer line by line
-      const lines = buffer.split("\n");
-      buffer = lines.pop() || ""; // Keep the last incomplete line in the buffer
-
-      for (const line of lines) {
-        if (line.startsWith("data: ")) {
-          const eventData = line.slice(6).trim();
-          if (eventData === "[DONE]") {
-            await processPendingText();
-
-            await writeNoRAGConversation(text, message, links);
-
-            if (links.length !== 0) {
-              await writeRAGConversation(links, text, language);
-            }
-
-            return;
-          }
-
-          const dataObject = JSON.parse(eventData);
-          if (links.length === 0) {
-            links = dataObject.metadata.links;
-            changeEggImageToGPTImage();
-          } else {
-            changeEggImageToImanage();
-          }
-          language = dataObject.metadata.language;
-          try {
-            if (dataObject.response) {
-              await processPendingText(dataObject.response);
-            }
-          } catch (error) {
-            console.error("Error parsing JSON:", error);
+      setTimeout(() => {
+        for (let i = 0; i < Math.min(links.length, 3); i++) {
+          const bubbleId = `bubble-${conversation_id}-${i}`;
+          const bubbleElement = document.getElementById(bubbleId);
+          if (bubbleElement) {
+            bubbleElement.addEventListener('click', function (e) {
+              e.preventDefault();
+              e.stopPropagation();
+              console.log('Loaded bubble clicked, opening links with:', video_ids.join(get_sep), titles.join(get_sep));
+              openLinks(video_ids.join(get_sep), titles.join(get_sep));
+            });
           }
         }
-      }
+      }, 100);
     }
+  });
 
-    let responseContent = [];
+  document.querySelectorAll(`code`).forEach((el) => {
+    hljs.highlightElement(el);
+  });
 
-    await window.storageManager.addMessage(window.conversation_id, "user", user_image, message);
-  } catch (e) {
-    document.getElementById(`shape_assistant_${window.token}`).src =
-      "/assets/img/gpt_egg.png";
-    document.getElementById(`assistant_${window.token}`).style.opacity = "0";
+  message_box.scrollTo({ top: message_box.scrollHeight, behavior: "smooth" });
 
-    await window.storageManager.addMessage(window.conversation_id, "user", user_image, message);
-
+  setTimeout(() => {
     message_box.scrollTop = message_box.scrollHeight;
-    await remove_cancel_button();
-    prompt_lock = false;
-
-    await load_conversations(20, 0);
-
-    let cursorDiv = document.getElementById(`cursor`);
-    if (cursorDiv) cursorDiv.parentNode.removeChild(cursorDiv);
-
-    if (e.name != `AbortError`) {
-      let error_message = `oops ! something went wrong, please try again / reload.`;
-
-      document.getElementById(`imanage_${window.token}`).innerHTML =
-        error_message;
-      await window.storageManager.addMessage(
-        window.conversation_id,
-        "assistant",
-        gpt_image,
-        error_message
-      );
-    } else {
-      document.getElementById(
-        `imanage_${window.token}`
-      ).innerHTML += ` [aborted]`;
-
-      await window.storageManager.addMessage(
-        window.conversation_id,
-        "assistant",
-        gpt_image,
-        text + ` [aborted]`
-      );
-    }
-
-    window.scrollTo(0, 0);
-  }
+  }, 500);
 };
 
 function changeEggImageToImanage() {
@@ -647,7 +523,7 @@ const set_conversation = async (conversation_id) => {
   window.conversation_id = conversation_id;
 
   await clear_conversation();
-  await window.storageManager.loadConversation(conversation_id);
+  await load_conversation(conversation_id);
   await load_conversations(20, 0, true);
 };
 
@@ -826,7 +702,7 @@ window.onload = async () => {
 
   if (!window.location.href.endsWith(`#`)) {
     if (/\/chat\/.+/.test(window.location.href)) {
-      await window.storageManager.loadConversation(window.conversation_id);
+      await load_conversation(window.conversation_id);
     }
   }
 
