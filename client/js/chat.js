@@ -1,102 +1,7 @@
-// ========== CHAT.JS - VERSION NETTOYÉE APRÈS REFACTORISATION ==========
+// ========== CHAT.JS - FIX ORDRE D'INITIALISATION ==========
 // DEPENDENCIES: utils.js must be loaded before this file
 
-// ========== EXPORT FONCTIONS POUR EVENT-MANAGER ==========
-// Ces fonctions seront appelées par event-manager.js
-
-// Exporter les handlers métier
-window.toggleSidebar = toggleSidebar;
-window.handle_ask = handle_ask;
-window.set_conversation = set_conversation;
-window.show_option = show_option;
-window.hide_option = hide_option;
-window.delete_conversation = delete_conversation;
-window.new_conversation = new_conversation;
-window.delete_conversations = delete_conversations;
-
-// Fonctions de navigation (pour event-manager)
-window.switchToDiscussions = switchToDiscussions;
-window.switchToWorkspace = switchToWorkspace;
-window.setActiveNavItem = setActiveNavItem;
-
-// Fonctions settings
-window.storeTheme = storeTheme;
-window.load_settings_localstorage = load_settings_localstorage;
-window.register_settings_localstorage = register_settings_localstorage;
-
-console.log('✅ Chat functions exported for event-manager');
-
-// ========== PATCH CHAT.JS POUR INTÉGRATION WORKSPACE ==========
-// Fonction pour détecter si on est sur workspace
-const isWorkspacePage = () => {
-  return window.location.pathname.includes('/workspace');
-};
-
-// Fonction pour vérifier si une carte est active en mode chat
-const isCardChatActive = () => {
-  return window.workspaceManager && window.workspaceManager.activeCardChat;
-};
-
-// ========== SIDEBAR TOGGLE ========== 
-function toggleSidebar() {
-  const body = document.body;
-  const isOpen = body.classList.contains('sidebar-open');
-
-  if (isOpen) {
-    body.classList.remove('sidebar-open');
-    window.storageManager.saveSetting('sidebarOpen', false);
-  } else {
-    body.classList.add('sidebar-open');
-    window.storageManager.saveSetting('sidebarOpen', true);
-  }
-}
-
-
-
-
-
-// NOUVELLE FONCTION : Initialiser l'intégration workspace
-const initWorkspaceIntegration = () => {
-  if (isWorkspacePage()) {
-    console.log('🔧 Initialisation intégration workspace...');
-
-    // Attendre que le workspace manager soit prêt
-    const waitForWorkspace = () => {
-      if (window.workspaceManager) {
-        console.log('✅ Workspace manager détecté');
-        return;
-      }
-      setTimeout(waitForWorkspace, 100);
-    };
-
-    waitForWorkspace();
-  }
-};
-
-// Export des fonctions utilitaires pour le workspace
-window.workspaceUtils = {
-  isWorkspacePage,
-  isCardChatActive,
-};
-
-// Initialize workspace integration when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-  console.log('✅ EventManager taking control of events');
-  initWorkspaceIntegration(); // Garder seulement la logique métier
-});
-
-// ========== END SIDEBAR TOGGLE ==========
-
-// ========== UTILISATION DES FONCTIONS DEPUIS UTILS.JS ==========
-// SUPPRIMÉ: const query = (obj) => ... // Utilise window.query
-// SUPPRIMÉ: const format = (text) => ... // Utilise window.format
-// SUPPRIMÉ: const uuid = () => ... // Utilise window.uuid
-// SUPPRIMÉ: const message_id = () => ... // Utilise window.message_id
-// SUPPRIMÉ: function getYouTubeID(url) ... // Utilise window.getYouTubeID
-// SUPPRIMÉ: function getScrollY(msg) ... // Utilise window.getScrollY
-// SUPPRIMÉ: function h2a(str1) ... // Utilise window.h2a
-// SUPPRIMÉ: const getDynamicWarning = () => ... // Utilise window.getDynamicWarning
-
+// ========== 1. VARIABLES GLOBALES D'ABORD ==========
 const colorThemes = document.querySelectorAll('[name="theme"]');
 const markdown = window.markdownit();
 const message_box = document.getElementById(`messages`);
@@ -118,7 +23,11 @@ const actionsButtons = `<div class="actions">
                               ${window.getDynamicWarning ? window.getDynamicWarning() : ''}
                           </div>`;
 const loadingStream = `<span class="loading-stream"></span>`;
+
 let prompt_lock = false;
+let conversations = 0;
+let settings_ids = [];
+let settings_elements = [];
 
 // Messages de greeting mis à jour
 const greetingMessages = {
@@ -126,107 +35,61 @@ const greetingMessages = {
   en: "Hi. I am N.O.G – Nested Orchestration & Governance.\nI am designed to orchestrate and govern interactions between specialized agents, with native integration capabilities for third-party systems such as iManage, among others.\n\nInteroperable with leading large language models (GPT, Mistral, Claude), I support complex operations while ensuring fine-grained, systematic traceability of every interaction.\n\nThis architecture guarantees robust governance, aligned with the standards and expectations of professional legal environments."
 };
 
-hljs.addPlugin(new CopyButtonPlugin());
+const class_last_message_assistant = "last-message-assistant";
 
 // S'assurer que l'élément existe avant de l'accéder
 if (document.getElementsByClassName("library-side-nav-content")[0]) {
   document.getElementsByClassName("library-side-nav-content")[0].innerHTML = '';
 }
 
-const class_last_message_assistant = "last-message-assistant";
+hljs.addPlugin(new CopyButtonPlugin());
 
+// ========== 2. TOUTES LES FONCTIONS MÉTIER ==========
 
+// Fonction pour détecter si on est sur workspace
+const isWorkspacePage = () => {
+  return window.location.pathname.includes('/workspace');
+};
+
+// Fonction pour vérifier si une carte est active en mode chat
+const isCardChatActive = () => {
+  return window.workspaceManager && window.workspaceManager.activeCardChat;
+};
+
+function toggleSidebar() {
+  const body = document.body;
+  const isOpen = body.classList.contains('sidebar-open');
+
+  if (isOpen) {
+    body.classList.remove('sidebar-open');
+    window.storageManager.saveSetting('sidebarOpen', false);
+  } else {
+    body.classList.add('sidebar-open');
+    window.storageManager.saveSetting('sidebarOpen', true);
+  }
+}
+
+const initWorkspaceIntegration = () => {
+  if (isWorkspacePage()) {
+    console.log('🔧 Initialisation intégration workspace...');
+
+    // Attendre que le workspace manager soit prêt
+    const waitForWorkspace = () => {
+      if (window.workspaceManager) {
+        console.log('✅ Workspace manager détecté');
+        return;
+      }
+      setTimeout(waitForWorkspace, 100);
+    };
+
+    waitForWorkspace();
+  }
+};
 
 const delete_conversations = async () => {
   window.storageManager.clearAllConversations();
   await new_conversation();
 };
-
-const handle_ask = async () => {
-  // Réinitialiser la hauteur de la barre de chat via le modernChatBar
-  if (window.modernChatBar && window.modernChatBar.isInitialized) {
-    window.modernChatBar.resetTextareaHeight();
-  }
-
-  message_input.focus();
-  window.scrollTo(0, 0);
-  let message = message_input.value;
-
-  if (message.length > 0) {
-    message_input.value = ``;
-    // Réinitialiser la hauteur du textarea
-    if (window.modernChatBar) {
-      window.modernChatBar.resizeTextarea();
-    }
-
-    // Vérifier si on doit router vers une carte
-    if (isWorkspacePage() && isCardChatActive()) {
-      // Router vers le gestionnaire de document
-      await window.workspaceManager.handleCardChatMessage(message, window.workspaceManager.activeCardChat);
-      return; // IMPORTANT : éviter le double traitement
-    } else {
-      // Fonctionnement normal du chat
-      await ask_gpt(message);
-    }
-  }
-};
-
-const remove_cancel_button = async () => {
-  if (stop_generating) {
-    stop_generating.classList.add(`stop_generating-hiding`);
-
-    setTimeout(() => {
-      if (stop_generating) {
-        stop_generating.classList.remove(`stop_generating-hiding`);
-        stop_generating.classList.add(`stop_generating-hidden`);
-      }
-    }, 300);
-  }
-};
-
-function openLibrary() {
-  window.location.href = '/onboarding/';
-}
-
-function closeLibrary() {
-  document.getElementById("librarySideNav").style.width = "0vw";
-  document.getElementById("menu").style.visibility = "hidden";
-}
-
-async function openLinks(videoIdsParam, titlesParams) {
-  document.getElementById("LinksSideNav").style.width = "100vw";
-  document.getElementById("LinksSideNav").style.padding = "25px";
-  document.getElementById("LinksSideNav").innerHTML = linksHTML();
-
-  const video_ids = videoIdsParam.split(get_sep);
-  const titles = titlesParams.split(get_sep);
-
-  for (var i = 0; i < video_ids.length; i++) {
-    const video_id = video_ids[i];
-    const title = titles[i];
-    const linksMenu = document.getElementById("linksMenu");
-    linksMenu.innerHTML += `<button type="button" data-video-id="${video_id}" class="collapsible video-button onboarding-section">${title}</button>`;
-  }
-
-  var video_buttons = document.getElementsByClassName("video-button");
-  var l;
-  for (l = 0; l < video_buttons.length; l++) {
-    const button = video_buttons[l];
-    button.addEventListener("click", (event) => {
-      const videoPlayer = document.getElementById(`link-video-iframe`);
-      const videoId = button.getAttribute("data-video-id");
-
-      videoPlayer.src = `https://www.youtube.com/embed/${videoId}`;
-    });
-  }
-  document.getElementById("sideNavHeader").style.display = "flex";
-}
-
-function closeLinks() {
-  document.getElementById("LinksSideNav").style.width = "0vw";
-  document.getElementById("LinksSideNav").style.padding = "0px";
-  document.getElementById("linksMenu").innerHTML = "";
-}
 
 const ask_gpt = async (message) => {
   try {
@@ -439,6 +302,162 @@ const ask_gpt = async (message) => {
   }
 };
 
+const handle_ask = async () => {
+  // Réinitialiser la hauteur de la barre de chat via le modernChatBar
+  if (window.modernChatBar && window.modernChatBar.isInitialized) {
+    window.modernChatBar.resetTextareaHeight();
+  }
+
+  message_input.focus();
+  window.scrollTo(0, 0);
+  let message = message_input.value;
+
+  if (message.length > 0) {
+    message_input.value = ``;
+    // Réinitialiser la hauteur du textarea
+    if (window.modernChatBar) {
+      window.modernChatBar.resizeTextarea();
+    }
+
+    // Vérifier si on doit router vers une carte
+    if (isWorkspacePage() && isCardChatActive()) {
+      // Router vers le gestionnaire de document
+      await window.workspaceManager.handleCardChatMessage(message, window.workspaceManager.activeCardChat);
+      return; // IMPORTANT : éviter le double traitement
+    } else {
+      // Fonctionnement normal du chat
+      await ask_gpt(message);
+    }
+  }
+};
+
+const set_conversation = async (conversation_id) => {
+  history.pushState({}, null, `/chat/${conversation_id}`);
+  window.conversation_id = conversation_id;
+
+  await clear_conversation();
+  await load_conversation(conversation_id);
+  await load_conversations(20, 0, true);
+};
+
+const new_conversation = async () => {
+  history.pushState({}, null, `/chat/`);
+  // CORRECTION: Utiliser window.uuid depuis utils.js
+  window.conversation_id = window.uuid();
+
+  await clear_conversation();
+
+  // Afficher le message de greeting au début d'une nouvelle conversation
+  const language = navigator.language.startsWith('fr') ? 'fr' : 'en';
+  const greetingText = greetingMessages[language];
+
+  // Ajouter le message de greeting
+  message_box.innerHTML += `
+    <div class="message message-assistant">
+      ${nog_image}
+      <div class="content">
+        <div class="assistant-content" style="word-wrap: break-word; max-width: 100%; overflow-x: auto;">
+          ${markdown.render(greetingText)}
+        </div>
+        ${actionsButtons}
+      </div>
+    </div>
+  `;
+
+  message_box.scrollTop = message_box.scrollHeight;
+
+  await load_conversations(20, 0, true);
+};
+
+const delete_conversation = async (conversation_id) => {
+  window.storageManager.deleteConversation(conversation_id);
+
+  const conversation = document.getElementById(`convo-${conversation_id}`);
+  conversation.remove();
+
+  if (window.conversation_id == conversation_id) {
+    await new_conversation();
+  }
+
+  await load_conversations(20, 0, true);
+};
+
+const show_option = async (conversation_id) => {
+  const conv = document.getElementById(`conv-${conversation_id}`);
+  const yes = document.getElementById(`yes-${conversation_id}`);
+  const not = document.getElementById(`not-${conversation_id}`);
+
+  conv.style.display = "none";
+  yes.style.display = "block";
+  not.style.display = "block";
+};
+
+const hide_option = async (conversation_id) => {
+  const conv = document.getElementById(`conv-${conversation_id}`);
+  const yes = document.getElementById(`yes-${conversation_id}`);
+  const not = document.getElementById(`not-${conversation_id}`);
+
+  conv.style.display = "block";
+  yes.style.display = "none";
+  not.style.display = "none";
+};con
+st remove_cancel_button = async () => {
+  if (stop_generating) {
+    stop_generating.classList.add(`stop_generating-hiding`);
+
+    setTimeout(() => {
+      if (stop_generating) {
+        stop_generating.classList.remove(`stop_generating-hiding`);
+        stop_generating.classList.add(`stop_generating-hidden`);
+      }
+    }, 300);
+  }
+};
+
+function openLibrary() {
+  window.location.href = '/onboarding/';
+}
+
+function closeLibrary() {
+  document.getElementById("librarySideNav").style.width = "0vw";
+  document.getElementById("menu").style.visibility = "hidden";
+}
+
+async function openLinks(videoIdsParam, titlesParams) {
+  document.getElementById("LinksSideNav").style.width = "100vw";
+  document.getElementById("LinksSideNav").style.padding = "25px";
+  document.getElementById("LinksSideNav").innerHTML = linksHTML();
+
+  const video_ids = videoIdsParam.split(get_sep);
+  const titles = titlesParams.split(get_sep);
+
+  for (var i = 0; i < video_ids.length; i++) {
+    const video_id = video_ids[i];
+    const title = titles[i];
+    const linksMenu = document.getElementById("linksMenu");
+    linksMenu.innerHTML += `<button type="button" data-video-id="${video_id}" class="collapsible video-button onboarding-section">${title}</button>`;
+  }
+
+  var video_buttons = document.getElementsByClassName("video-button");
+  var l;
+  for (l = 0; l < video_buttons.length; l++) {
+    const button = video_buttons[l];
+    button.addEventListener("click", (event) => {
+      const videoPlayer = document.getElementById(`link-video-iframe`);
+      const videoId = button.getAttribute("data-video-id");
+
+      videoPlayer.src = `https://www.youtube.com/embed/${videoId}`;
+    });
+  }
+  document.getElementById("sideNavHeader").style.display = "flex";
+}
+
+function closeLinks() {
+  document.getElementById("LinksSideNav").style.width = "0vw";
+  document.getElementById("LinksSideNav").style.padding = "0px";
+  document.getElementById("linksMenu").innerHTML = "";
+}
+
 function changeEggImageToImanage() {
   let imanageImageChanged = false;
   if (!imanageImageChanged) {
@@ -632,77 +651,6 @@ const clear_conversation = async () => {
   }
 };
 
-const show_option = async (conversation_id) => {
-  const conv = document.getElementById(`conv-${conversation_id}`);
-  const yes = document.getElementById(`yes-${conversation_id}`);
-  const not = document.getElementById(`not-${conversation_id}`);
-
-  conv.style.display = "none";
-  yes.style.display = "block";
-  not.style.display = "block";
-};
-
-const hide_option = async (conversation_id) => {
-  const conv = document.getElementById(`conv-${conversation_id}`);
-  const yes = document.getElementById(`yes-${conversation_id}`);
-  const not = document.getElementById(`not-${conversation_id}`);
-
-  conv.style.display = "block";
-  yes.style.display = "none";
-  not.style.display = "none";
-};
-
-const delete_conversation = async (conversation_id) => {
-  window.storageManager.deleteConversation(conversation_id);
-
-  const conversation = document.getElementById(`convo-${conversation_id}`);
-  conversation.remove();
-
-  if (window.conversation_id == conversation_id) {
-    await new_conversation();
-  }
-
-  await load_conversations(20, 0, true);
-};
-
-const set_conversation = async (conversation_id) => {
-  history.pushState({}, null, `/chat/${conversation_id}`);
-  window.conversation_id = conversation_id;
-
-  await clear_conversation();
-  await load_conversation(conversation_id);
-  await load_conversations(20, 0, true);
-};
-
-const new_conversation = async () => {
-  history.pushState({}, null, `/chat/`);
-  // CORRECTION: Utiliser window.uuid depuis utils.js
-  window.conversation_id = window.uuid();
-
-  await clear_conversation();
-
-  // Afficher le message de greeting au début d'une nouvelle conversation
-  const language = navigator.language.startsWith('fr') ? 'fr' : 'en';
-  const greetingText = greetingMessages[language];
-
-  // Ajouter le message de greeting
-  message_box.innerHTML += `
-    <div class="message message-assistant">
-      ${nog_image}
-      <div class="content">
-        <div class="assistant-content" style="word-wrap: break-word; max-width: 100%; overflow-x: auto;">
-          ${markdown.render(greetingText)}
-        </div>
-        ${actionsButtons}
-      </div>
-    </div>
-  `;
-
-  message_box.scrollTop = message_box.scrollHeight;
-
-  await load_conversations(20, 0, true);
-};
-
 const load_conversation = async (conversation_id) => {
   let conversation = {
     items: await window.storageManager.getConversation(conversation_id)
@@ -840,17 +788,7 @@ const load_conversations = async (limit, offset, loader) => {
       `;
     }
   }
-
-  document.querySelectorAll(`code`).forEach((el) => {
-    hljs.highlightElement(el);
-  });
 };
-
-
-
-// ========== GESTION NOUVELLE SIDEBAR ========== 
-
-
 
 // Navigation entre sections
 function switchToDiscussions() {
@@ -878,38 +816,87 @@ function setActiveNavItem(section) {
   });
 }
 
-// Actions du menu utilisateur
-function openSettings() {
-  console.log('Opening settings');
-  // Implémenter l'ouverture des paramètres
-}
-
-function toggleLanguageSubmenu() {
-  console.log('Toggle language submenu');
-  // Implémenter le sous-menu langues
-}
-
-function toggleAboutSubmenu() {
-  console.log('Toggle about submenu');
-  // Implémenter le sous-menu "En savoir plus"
-}
-
-function logout() {
-  if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
-    window.storageManager.clearAllConversations();
-    window.location.href = '/login';
-  }
-}
-
 // Mise à jour de l'état actif des sections de navigation
 function updateNavigationState() {
   // Par défaut, discussions est actif
   setActiveNavItem('discussions');
 }
 
+// Theme storage for recurring viewers
+const storeTheme = function (theme) {
+  window.storageManager.saveSetting("theme", theme);
+};
 
+// set theme when visitor returns
+const setTheme = function () {
+  const activeTheme = window.storageManager.loadSetting("theme");
+  colorThemes.forEach((themeOption) => {
+    if (themeOption.id === activeTheme) {
+      themeOption.checked = true;
+      // fallback for no :has() support
+      document.documentElement.className = activeTheme;
+    }
+  });
+};
 
-console.log('🔧 Patch chat.js pour workspace appliqué');
+const load_settings_localstorage = async () => {
+  settings_ids = ["model"];
+  settings_elements = settings_ids.map((id) => document.getElementById(id));
+  settings_elements.map((element) => {
+    const savedValue = window.storageManager.loadSetting(element.id);
+    if (savedValue !== null) {
+      switch (element.type) {
+        case "checkbox":
+          element.checked = savedValue;
+          break;
+        case "select-one":
+          element.selectedIndex = savedValue;
+          break;
+        default:
+          console.warn("Unresolved element type");
+      }
+    }
+  });
+};
+
+const register_settings_localstorage = async () => {
+  // Event-manager prend en charge les événements settings
+  console.log('Settings events handled by event-manager');
+};
+
+// Export des fonctions utilitaires pour le workspace
+window.workspaceUtils = {
+  isWorkspacePage,
+  isCardChatActive,
+};
+
+// ========== 3. EXPORTS À LA FIN ==========
+window.toggleSidebar = toggleSidebar;
+window.handle_ask = handle_ask;
+window.set_conversation = set_conversation;
+window.show_option = show_option;
+window.hide_option = hide_option;
+window.delete_conversation = delete_conversation;
+window.new_conversation = new_conversation;
+window.delete_conversations = delete_conversations;
+
+// Fonctions de navigation (pour event-manager)
+window.switchToDiscussions = switchToDiscussions;
+window.switchToWorkspace = switchToWorkspace;
+window.setActiveNavItem = setActiveNavItem;
+
+// Fonctions settings
+window.storeTheme = storeTheme;
+window.load_settings_localstorage = load_settings_localstorage;
+window.register_settings_localstorage = register_settings_localstorage;
+
+console.log('✅ Chat functions exported for event-manager');
+
+// ========== 4. INITIALISATIONS EN DERNIER ==========
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('✅ EventManager taking control of events');
+  initWorkspaceIntegration();
+});
 
 window.onload = async () => {
   load_settings_localstorage();
@@ -932,62 +919,9 @@ window.onload = async () => {
   register_settings_localstorage();
 };
 
-
-
-const register_settings_localstorage = async () => {
-  // Event-manager prend en charge les événements settings
-  console.log('Settings events handled by event-manager');
-};
-
-const load_settings_localstorage = async () => {
-  settings_ids = ["model"];
-  settings_elements = settings_ids.map((id) => document.getElementById(id));
-  settings_elements.map((element) => {
-    const savedValue = window.storageManager.loadSetting(element.id);
-    if (savedValue !== null) {
-      switch (element.type) {
-        case "checkbox":
-          element.checked = savedValue === true;
-          break;
-        case "select-one":
-          element.selectedIndex = parseInt(savedValue);
-          break;
-        default:
-          console.warn("Unresolved element type");
-      }
-    }
-  });
-};
-
-// Theme storage for recurring viewers
-const storeTheme = function (theme) {
-  window.storageManager.saveSetting("theme", theme);
-};
-
-// set theme when visitor returns
-const setTheme = function () {
-  const activeTheme = window.storageManager.loadSetting("theme");
-  colorThemes.forEach((themeOption) => {
-    if (themeOption.id === activeTheme) {
-      themeOption.checked = true;
-    }
-  });
-  // fallback for no :has() support
-  document.documentElement.className = activeTheme;
-  // scroll if requested
-  if (back_scrolly >= 0) {
-    message_box.scrollTo({ top: back_scrolly, behavior: "smooth" });
-  }
-};
-
-
-
 document.onload = setTheme();
 
 // Initialize highlight.js copy button plugin
 hljs.addPlugin(new CopyButtonPlugin());
 
-// Initialize library side nav with empty content
-if (document.getElementsByClassName("library-side-nav-content")[0]) {
-  document.getElementsByClassName("library-side-nav-content")[0].innerHTML = '';
-}
+console.log('🔧 Patch chat.js pour workspace appliqué');
