@@ -670,22 +670,11 @@ function updateNavigationState() {
 
 console.log('🔧 Patch chat.js pour workspace appliqué');
 
-// ========== 3. EXPORTS À LA FIN (APRÈS DÉFINITIONS) ==========
-window.toggleSidebar = toggleSidebar;
+// ========== EXPORTS ESSENTIELS POUR COMPATIBILITÉ ==========
 window.handle_ask = handle_ask;
 window.set_conversation = set_conversation;
-window.show_option = show_option;
-window.hide_option = hide_option;
-window.delete_conversation = delete_conversation;
 window.new_conversation = new_conversation;
-window.delete_conversations = delete_conversations;
-window.switchToDiscussions = switchToDiscussions;
-window.switchToWorkspace = switchToWorkspace;
-window.setActiveNavItem = setActiveNavItem;
-window.storeTheme = storeTheme;
-window.load_settings_localstorage = load_settings_localstorage;
-window.register_settings_localstorage = register_settings_localstorage;
-console.log('✅ Chat functions exported for event-manager');
+console.log('✅ Essential chat functions exported');
 
 // ========== 4. INITIALISATIONS EN DERNIER ==========
 window.onload = async () => {
