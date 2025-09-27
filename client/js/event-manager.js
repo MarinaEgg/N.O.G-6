@@ -8,12 +8,12 @@ class EventManager {
         this.delegators = new Map(); // Event delegation handlers
         this.initialized = false;
         this.currentPage = this.detectCurrentPage();
-        
+
         // Flags pour éviter double initialization
         this.sidebarInitialized = false;
         this.chatInitialized = false;
         this.workspaceInitialized = false;
-        
+
         console.log('🎯 EventManager created for page:', this.currentPage);
     }
 
@@ -22,8 +22,7 @@ class EventManager {
         const path = window.location.pathname;
         if (path.includes('/workspace')) return 'workspace';
         if (path.includes('/chat')) return 'chat';
-        if (path.includes('/onboarding')) return 'onboarding';
-        return 'unknown';
+        return 'chat'; // DEFAULT vers chat au lieu de 'unknown'
     }
 
     // ========== INITIALISATION PRINCIPALE ==========
@@ -34,23 +33,23 @@ class EventManager {
         }
 
         console.log('🚀 Initializing EventManager for', this.currentPage);
-        
+
         // Nettoyage préventif
         this.cleanup();
-        
+
         // Setup base selon la page
         this.setupGlobalEventDelegation();
-        
+
         // Initialisation conditionnelle par page
         if (this.currentPage === 'chat') {
             this.initChatEvents();
         } else if (this.currentPage === 'workspace') {
             this.initWorkspaceEvents();
         }
-        
+
         // Events communs à toutes les pages
         this.initCommonEvents();
-        
+
         this.initialized = true;
         console.log('✅ EventManager initialized with', this.listeners.size, 'listeners');
     }
@@ -89,8 +88,8 @@ class EventManager {
 
         // Overlay mobile - délégation sécurisée
         this.addSafeListener(document.body, 'click', (e) => {
-            if (window.innerWidth <= 990 && 
-                e.target.matches('body') && 
+            if (window.innerWidth <= 990 &&
+                e.target.matches('body') &&
                 document.body.classList.contains('sidebar-open')) {
                 this.closeSidebar();
             }
@@ -124,7 +123,7 @@ class EventManager {
         }
 
         console.log('🔧 Initializing chat events...');
-        
+
         // Sidebar d'abord
         this.initSidebarEvents();
 
@@ -186,7 +185,7 @@ class EventManager {
         }
 
         console.log('🔧 Initializing workspace events...');
-        
+
         // Sidebar pour workspace aussi
         this.initSidebarEvents();
 
@@ -284,10 +283,10 @@ class EventManager {
 
     // ========== CONFIGURATION CONVERSATIONS ==========
     setupConversationEvents() {
-        const conversationsContainer = document.getElementById('conversationsList') || 
-                                     document.querySelector('.conversations-list') || 
-                                     document.querySelector('.top');
-        
+        const conversationsContainer = document.getElementById('conversationsList') ||
+            document.querySelector('.conversations-list') ||
+            document.querySelector('.top');
+
         if (!conversationsContainer) return;
 
         // Délégation pour toutes les actions de conversation
@@ -367,7 +366,7 @@ class EventManager {
     }
 
     // ========== MÉTHODES DE GESTION ==========
-    
+
     async handleMessageSubmit() {
         if (window.handle_ask && typeof window.handle_ask === 'function') {
             await window.handle_ask();
@@ -379,7 +378,7 @@ class EventManager {
     toggleSidebar() {
         const body = document.body;
         const isOpen = body.classList.contains('sidebar-open');
-        
+
         if (isOpen) {
             body.classList.remove('sidebar-open');
             if (window.storageManager) {
@@ -391,7 +390,7 @@ class EventManager {
                 window.storageManager.saveSetting('sidebarOpen', true);
             }
         }
-        
+
         console.log('🔧 Sidebar toggled:', !isOpen);
     }
 
@@ -405,7 +404,7 @@ class EventManager {
     toggleUserMenu() {
         const userMenu = document.getElementById('userMenu');
         const userProfile = document.getElementById('userProfile');
-        
+
         if (userMenu && userProfile) {
             const isShowing = userMenu.classList.toggle('show');
             userProfile.classList.toggle('active', isShowing);
@@ -440,7 +439,7 @@ class EventManager {
         // Fermer modals ouverts
         const modals = document.querySelectorAll('.modal-overlay');
         modals.forEach(modal => modal.remove());
-        
+
         // Fermer user menu
         const userMenu = document.getElementById('userMenu');
         const userProfile = document.getElementById('userProfile');
@@ -465,7 +464,7 @@ class EventManager {
     }
 
     // ========== CONVERSATION MANAGEMENT ==========
-    
+
     async setConversation(conversationId) {
         if (typeof set_conversation === 'function') {
             await set_conversation(conversationId);
@@ -515,7 +514,7 @@ class EventManager {
 
         const wrappedHandler = this.createSafeHandler(handler, listenerId);
         element.addEventListener(event, wrappedHandler);
-        
+
         this.listeners.set(listenerId, {
             element,
             event,
@@ -543,7 +542,7 @@ class EventManager {
         };
 
         container.addEventListener(event, delegatedHandler);
-        
+
         this.delegators.set(listenerId, {
             container,
             event,
@@ -566,19 +565,18 @@ class EventManager {
     }
 
     handleDelegatedAction(action, target, e) {
-        // Router les actions communes
         switch (action) {
             case 'toggle-sidebar':
                 this.toggleSidebar();
                 break;
             case 'new-conversation':
-                if (typeof new_conversation === 'function') {
-                    new_conversation();
+                if (typeof window.new_conversation === 'function') {
+                    window.new_conversation();
                 }
                 break;
             case 'delete-conversations':
-                if (typeof delete_conversations === 'function') {
-                    delete_conversations();
+                if (typeof window.delete_conversations === 'function') {
+                    window.delete_conversations();
                 }
                 break;
             default:
@@ -598,7 +596,7 @@ class EventManager {
 
     cleanup() {
         console.log('🧹 Cleaning up existing event listeners...');
-        
+
         // Supprimer listeners trackés
         this.listeners.forEach((listener, id) => {
             try {
@@ -607,7 +605,7 @@ class EventManager {
                 console.warn(`Failed to remove listener ${id}:`, e);
             }
         });
-        
+
         // Supprimer delegators trackés
         this.delegators.forEach((delegator, id) => {
             try {
@@ -619,7 +617,7 @@ class EventManager {
 
         this.listeners.clear();
         this.delegators.clear();
-        
+
         // Reset flags
         this.sidebarInitialized = false;
         this.chatInitialized = false;
@@ -628,7 +626,7 @@ class EventManager {
     }
 
     // ========== DEBUGGING ==========
-    
+
     getStats() {
         return {
             page: this.currentPage,
@@ -657,9 +655,9 @@ function initEventManager() {
         console.warn('⚠️ EventManager already exists, cleaning up...');
         eventManager.cleanup();
     }
-    
+
     eventManager = new EventManager();
-    
+
     // Initialiser selon l'état du DOM
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
@@ -668,14 +666,14 @@ function initEventManager() {
     } else {
         eventManager.init();
     }
-    
+
     return eventManager;
 }
 
 // Auto-initialisation
 if (typeof window !== 'undefined') {
     window.eventManager = initEventManager();
-    
+
     // Export pour debugging
     window.initEventManager = initEventManager;
 }
