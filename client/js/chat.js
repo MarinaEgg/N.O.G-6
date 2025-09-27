@@ -1,4 +1,4 @@
-// ========== CHAT.JS - CORRECTIONS CRITIQUES ==========
+// ========== CHAT.JS - VERSION NETTOYÉE APRÈS REFACTORISATION ==========
 // DEPENDENCIES: utils.js must be loaded before this file
 
 // ========== PATCH CHAT.JS POUR INTÉGRATION WORKSPACE ==========
@@ -98,8 +98,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ========== END SIDEBAR TOGGLE ==========
 
-// CORRECTION 1: Utiliser window.query depuis utils.js au lieu de redéfinir
-// SUPPRIMÉ: const query = (obj) => ... 
+// ========== UTILISATION DES FONCTIONS DEPUIS UTILS.JS ==========
+// SUPPRIMÉ: const query = (obj) => ... // Utilise window.query
+// SUPPRIMÉ: const format = (text) => ... // Utilise window.format
+// SUPPRIMÉ: const uuid = () => ... // Utilise window.uuid
+// SUPPRIMÉ: const message_id = () => ... // Utilise window.message_id
+// SUPPRIMÉ: function getYouTubeID(url) ... // Utilise window.getYouTubeID
+// SUPPRIMÉ: function getScrollY(msg) ... // Utilise window.getScrollY
+// SUPPRIMÉ: function h2a(str1) ... // Utilise window.h2a
+// SUPPRIMÉ: const getDynamicWarning = () => ... // Utilise window.getDynamicWarning
 
 const colorThemes = document.querySelectorAll('[name="theme"]');
 const markdown = window.markdownit();
@@ -114,9 +121,7 @@ const copyButton = `<div class="copy-icon"> <img src="/assets/img/copy.png" heig
 const likeButton = `<div class="like-icon"> <img src="/assets/img/like.png" height="14px" /> </div>`;
 const dislikeButton = `<div class="dislike-icon"> <img src="/assets/img/dislike.png" height="14px" /> </div>`;
 
-// CORRECTION 2: Utiliser window.getDynamicWarning depuis utils.js
-// SUPPRIMÉ: const getDynamicWarning = () => ...
-
+// CORRECTION: Utiliser window.getDynamicWarning depuis utils.js
 const actionsButtons = `<div class="actions">
                               ${copyButton}
                               ${likeButton}
@@ -140,9 +145,6 @@ if (document.getElementsByClassName("library-side-nav-content")[0]) {
 }
 
 const class_last_message_assistant = "last-message-assistant";
-
-// CORRECTION 3: Utiliser window.format depuis utils.js
-// SUPPRIMÉ: const format = (text) => ...
 
 message_input.addEventListener("blur", () => {
   window.scrollTo(0, 0);
@@ -252,7 +254,7 @@ const ask_gpt = async (message) => {
     const model = document.getElementById("model");
     prompt_lock = true;
     window.text = ``;
-    // CORRECTION 4: Utiliser window.message_id depuis utils.js
+    // CORRECTION: Utiliser window.message_id depuis utils.js
     window.token = window.message_id();
 
     if (stop_generating) {
@@ -532,7 +534,7 @@ async function writeRAGConversation(links, text, language) {
     hljs.highlightElement(el);
   });
 
-  // CORRECTION 5: Utiliser window.getYouTubeID depuis utils.js
+  // CORRECTION: Utiliser window.getYouTubeID depuis utils.js
   const video_ids = links.map((link) => window.getYouTubeID(link));
 
   const titles = await Promise.all(
@@ -578,7 +580,7 @@ async function writeRAGConversation(links, text, language) {
     class_last_message_assistant
   )[0];
 
-  // CORRECTION 6: Utiliser window.getScrollY depuis utils.js
+  // CORRECTION: Utiliser window.getScrollY depuis utils.js
   const scrolly = window.getScrollY(last_message_assistant);
   last_message_assistant.classList.remove(class_last_message_assistant);
 
@@ -687,7 +689,7 @@ const set_conversation = async (conversation_id) => {
 
 const new_conversation = async () => {
   history.pushState({}, null, `/chat/`);
-  // CORRECTION 7: Utiliser window.uuid depuis utils.js
+  // CORRECTION: Utiliser window.uuid depuis utils.js
   window.conversation_id = window.uuid();
 
   await clear_conversation();
@@ -740,7 +742,7 @@ const load_conversation = async (conversation_id) => {
         `;
     } else if (item.role === "video_assistant") {
       const links = item.content.links;
-      // CORRECTION 8: Utiliser window.getYouTubeID depuis utils.js
+      // CORRECTION: Utiliser window.getYouTubeID depuis utils.js
       const video_ids = links.map((link) => window.getYouTubeID(link));
       const titles = item.content.titles;
       const language = item.content.language;
@@ -772,4 +774,350 @@ const load_conversation = async (conversation_id) => {
         </div>`;
 
       // Ajouter les événements de clic après l'ajout au DOM
-      setTimeout(()
+      setTimeout(() => {
+        for (let i = 0; i < Math.min(links.length, 3); i++) {
+          const bubbleId = `bubble-${conversation_id}-${i}`;
+          const bubbleElement = document.getElementById(bubbleId);
+          if (bubbleElement) {
+            bubbleElement.addEventListener('click', function (e) {
+              e.preventDefault();
+              e.stopPropagation();
+              console.log('Loaded bubble clicked, opening links with:', video_ids.join(get_sep), titles.join(get_sep));
+              openLinks(video_ids.join(get_sep), titles.join(get_sep));
+            });
+          }
+        }
+      }, 100);
+    }
+  });
+
+  document.querySelectorAll(`code`).forEach((el) => {
+    hljs.highlightElement(el);
+  });
+
+  message_box.scrollTo({ top: message_box.scrollHeight, behavior: "smooth" });
+
+  setTimeout(() => {
+    message_box.scrollTop = message_box.scrollHeight;
+  }, 500);
+};
+
+const get_conversation = async (conversation_id) => {
+  let conversation = await JSON.parse(
+    localStorage.getItem(`conversation:${conversation_id}`)
+  );
+  return conversation.items;
+};
+
+const add_conversation = async (conversation_id, title) => {
+  if (localStorage.getItem(`conversation:${conversation_id}`) == null) {
+    localStorage.setItem(
+      `conversation:${conversation_id}`,
+      JSON.stringify({
+        id: conversation_id,
+        title: title,
+        items: [],
+      })
+    );
+  }
+};
+
+const add_message = async (conversation_id, role, image, content) => {
+  const conversation = JSON.parse(
+    localStorage.getItem(`conversation:${conversation_id}`)
+  );
+
+  conversation.items.push({
+    role: role,
+    image: image,
+    content: content,
+  });
+
+  localStorage.setItem(
+    `conversation:${conversation_id}`,
+    JSON.stringify(conversation)
+  );
+};
+
+const load_conversations = async (limit, offset, loader) => {
+  let conversations = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    if (localStorage.key(i).startsWith("conversation:")) {
+      let conversation = localStorage.getItem(localStorage.key(i));
+      conversations.push(JSON.parse(conversation));
+    }
+  }
+
+  // Vider la nouvelle liste des conversations
+  const conversationsList = document.getElementById('conversationsList');
+  if (conversationsList) {
+    conversationsList.innerHTML = '';
+
+    // Ajouter chaque conversation avec la nouvelle structure
+    for (conversation of conversations) {
+      conversationsList.innerHTML += `
+        <div class="conversation-item" id="convo-${conversation.id}">
+          <div class="conversation-item-content" onclick="set_conversation('${conversation.id}')">
+            <span class="conversation-item-title">${conversation.title}</span>
+          </div>
+          <div class="conversation-item-actions">
+            <i class="fas fa-ellipsis-h" onclick="show_option('${conversation.id}')" title="Options"></i>
+          </div>
+        </div>
+      `;
+    }
+  } else {
+    // Fallback pour l'ancien système si le nouvel élément n'existe pas
+    console.warn('conversationsList non trouvé, utilisation de l\'ancien système');
+    await clear_conversations();
+    for (conversation of conversations) {
+      box_conversations.innerHTML += `
+        <div class="convo" id="convo-${conversation.id}">
+          <div class="left" onclick="set_conversation('${conversation.id}')">
+              <i class="fa-regular fa-comments"></i>
+              <span class="convo-title">${conversation.title}</span>
+          </div>
+          <i onclick="show_option('${conversation.id}')" class="fa-regular fa-trash" id="conv-${conversation.id}"></i>
+          <i onclick="delete_conversation('${conversation.id}')" class="fa-regular fa-check" id="yes-${conversation.id}" style="display:none;"></i>
+          <i onclick="hide_option('${conversation.id}')" class="fa-regular fa-x" id="not-${conversation.id}" style="display:none;"></i>
+        </div>
+      `;
+    }
+  }
+
+  document.querySelectorAll(`code`).forEach((el) => {
+    hljs.highlightElement(el);
+  });
+};
+
+document.getElementById(`cancelButton`)?.addEventListener(`click`, async () => {
+  if (window.controller) {
+    window.controller.abort();
+  }
+});
+
+// ========== GESTION NOUVELLE SIDEBAR ========== 
+
+// Gestion du menu utilisateur
+document.addEventListener('DOMContentLoaded', () => {
+  const userProfile = document.getElementById('userProfile');
+  const userMenu = document.getElementById('userMenu');
+
+  if (userProfile && userMenu) {
+    userProfile.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isShowing = userMenu.classList.toggle('show');
+      userProfile.classList.toggle('active', isShowing);
+    });
+
+    // Fermer le menu en cliquant ailleurs
+    document.addEventListener('click', (e) => {
+      if (!userProfile.contains(e.target) && !userMenu.contains(e.target)) {
+        userMenu.classList.remove('show');
+        userProfile.classList.remove('active');
+      }
+    });
+  }
+});
+
+// Navigation entre sections
+function switchToDiscussions() {
+  // Déconnecter du workspace si actif
+  if (window.workspaceManager && window.workspaceManager.activeCardChat) {
+    window.workspaceManager.disconnectFromMainChat();
+  }
+
+  setActiveNavItem('discussions');
+  window.location.href = '/chat/';
+}
+
+function switchToWorkspace() {
+  setActiveNavItem('workspace');
+  window.location.href = '/workspace/';
+}
+
+function setActiveNavItem(section) {
+  const navItems = document.querySelectorAll('.nav-item');
+  navItems.forEach(item => {
+    item.classList.remove('active');
+    if (item.dataset.section === section) {
+      item.classList.add('active');
+    }
+  });
+}
+
+// Actions du menu utilisateur
+function openSettings() {
+  console.log('Opening settings');
+  // Implémenter l'ouverture des paramètres
+}
+
+function toggleLanguageSubmenu() {
+  console.log('Toggle language submenu');
+  // Implémenter le sous-menu langues
+}
+
+function toggleAboutSubmenu() {
+  console.log('Toggle about submenu');
+  // Implémenter le sous-menu "En savoir plus"
+}
+
+function logout() {
+  if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
+    localStorage.clear();
+    window.location.href = '/login';
+  }
+}
+
+// Mise à jour de l'état actif des sections de navigation
+function updateNavigationState() {
+  // Par défaut, discussions est actif
+  setActiveNavItem('discussions');
+}
+
+// Initialiser l'état de navigation au chargement
+document.addEventListener('DOMContentLoaded', () => {
+  updateNavigationState();
+
+  // Si on est sur la page de chat, initialiser l'intégration workspace
+  if (window.location.pathname.includes('/chat')) {
+    initWorkspaceIntegration();
+  }
+});
+
+console.log('🔧 Patch chat.js pour workspace appliqué');
+
+window.onload = async () => {
+  load_settings_localstorage();
+
+  conversations = 0;
+  for (let i = 0; i < localStorage.length; i++) {
+    if (localStorage.key(i).startsWith("conversation:")) {
+      conversations += 1;
+    }
+  }
+
+  if (conversations == 0) localStorage.clear();
+
+  await setTimeout(() => {
+    load_conversations(20, 0);
+  }, 1);
+
+  if (!window.location.href.endsWith(`#`)) {
+    if (/\/chat\/.+/.test(window.location.href)) {
+      await load_conversation(window.conversation_id);
+    }
+  }
+
+  // Événement d'envoi via le bouton
+  if (send_button) {
+    send_button.addEventListener(`click`, async () => {
+      if (prompt_lock) return;
+      await handle_ask();
+    });
+  }
+
+  register_settings_localstorage();
+
+  // Add Enter key handler for message input
+  if (message_input) {
+    message_input.addEventListener(`keydown`, async (event) => {
+      if (event.key === `Enter` && !event.shiftKey) {
+        event.preventDefault();
+        if (prompt_lock) return;
+        await handle_ask();
+      }
+    });
+  }
+};
+
+document.querySelector(".mobile-sidebar")?.addEventListener("click", (event) => {
+  const sidebar = document.querySelector(".conversations");
+
+  if (sidebar.classList.contains("shown")) {
+    sidebar.classList.remove("shown");
+    event.target.classList.remove("rotated");
+  } else {
+    sidebar.classList.add("shown");
+    event.target.classList.add("rotated");
+  }
+
+  window.scrollTo(0, 0);
+});
+
+const register_settings_localstorage = async () => {
+  settings_ids = ["model"];
+  settings_elements = settings_ids.map((id) => document.getElementById(id));
+  settings_elements.map((element) =>
+    element.addEventListener(`change`, async (event) => {
+      switch (event.target.type) {
+        case "checkbox":
+          localStorage.setItem(event.target.id, event.target.checked);
+          break;
+        case "select-one":
+          localStorage.setItem(event.target.id, event.target.selectedIndex);
+          break;
+        default:
+          console.warn("Unresolved element type");
+      }
+    })
+  );
+};
+
+const load_settings_localstorage = async () => {
+  settings_ids = ["model"];
+  settings_elements = settings_ids.map((id) => document.getElementById(id));
+  settings_elements.map((element) => {
+    if (localStorage.getItem(element.id)) {
+      switch (element.type) {
+        case "checkbox":
+          element.checked = localStorage.getItem(element.id) === "true";
+          break;
+        case "select-one":
+          element.selectedIndex = parseInt(localStorage.getItem(element.id));
+          break;
+        default:
+          console.warn("Unresolved element type");
+      }
+    }
+  });
+};
+
+// Theme storage for recurring viewers
+const storeTheme = function (theme) {
+  localStorage.setItem("theme", theme);
+};
+
+// set theme when visitor returns
+const setTheme = function () {
+  const activeTheme = localStorage.getItem("theme");
+  colorThemes.forEach((themeOption) => {
+    if (themeOption.id === activeTheme) {
+      themeOption.checked = true;
+    }
+  });
+  // fallback for no :has() support
+  document.documentElement.className = activeTheme;
+  // scroll if requested
+  if (back_scrolly >= 0) {
+    message_box.scrollTo({ top: back_scrolly, behavior: "smooth" });
+  }
+};
+
+colorThemes.forEach((themeOption) => {
+  themeOption.addEventListener("click", () => {
+    storeTheme(themeOption.id);
+    // fallback for no :has() support
+    document.documentElement.className = themeOption.id;
+  });
+});
+
+document.onload = setTheme();
+
+// Initialize highlight.js copy button plugin
+hljs.addPlugin(new CopyButtonPlugin());
+
+// Initialize library side nav with empty content
+if (document.getElementsByClassName("library-side-nav-content")[0]) {
+  document.getElementsByClassName("library-side-nav-content")[0].innerHTML = '';
+}
