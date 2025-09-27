@@ -19,10 +19,10 @@ function toggleSidebar() {
 
   if (isOpen) {
     body.classList.remove('sidebar-open');
-    localStorage.setItem('sidebarOpen', 'false');
+    window.storageManager.saveSetting('sidebarOpen', false);
   } else {
     body.classList.add('sidebar-open');
-    localStorage.setItem('sidebarOpen', 'true');
+    window.storageManager.saveSetting('sidebarOpen', true);
   }
 }
 
@@ -52,8 +52,8 @@ function initSidebar() {
   setTimeout(attachInternalHamburger, 50);
 
   // Restaurer l'état depuis localStorage
-  const savedState = localStorage.getItem('sidebarOpen');
-  if (savedState === 'true') {
+  const savedState = window.storageManager.loadSetting('sidebarOpen', false);
+  if (savedState === true) {
     document.body.classList.add('sidebar-open');
   }
 }
@@ -151,7 +151,7 @@ message_input.addEventListener("blur", () => {
 });
 
 const delete_conversations = async () => {
-  localStorage.clear();
+  window.storageManager.clearAllConversations();
   await new_conversation();
 };
 
@@ -666,7 +666,7 @@ const hide_option = async (conversation_id) => {
 };
 
 const delete_conversation = async (conversation_id) => {
-  localStorage.removeItem(`conversation:${conversation_id}`);
+  window.storageManager.deleteConversation(conversation_id);
 
   const conversation = document.getElementById(`convo-${conversation_id}`);
   conversation.remove();
@@ -717,9 +717,9 @@ const new_conversation = async () => {
 };
 
 const load_conversation = async (conversation_id) => {
-  let conversation = await JSON.parse(
-    localStorage.getItem(`conversation:${conversation_id}`)
-  );
+  let conversation = {
+    items: await window.storageManager.getConversation(conversation_id)
+  };
 
   conversation?.items.forEach((item) => {
     const messageAlignmentClass =
@@ -803,50 +803,19 @@ const load_conversation = async (conversation_id) => {
 };
 
 const get_conversation = async (conversation_id) => {
-  let conversation = await JSON.parse(
-    localStorage.getItem(`conversation:${conversation_id}`)
-  );
-  return conversation.items;
+  return await window.storageManager.getConversation(conversation_id);
 };
 
 const add_conversation = async (conversation_id, title) => {
-  if (localStorage.getItem(`conversation:${conversation_id}`) == null) {
-    localStorage.setItem(
-      `conversation:${conversation_id}`,
-      JSON.stringify({
-        id: conversation_id,
-        title: title,
-        items: [],
-      })
-    );
-  }
+  await window.storageManager.addConversation(conversation_id, title);
 };
 
 const add_message = async (conversation_id, role, image, content) => {
-  const conversation = JSON.parse(
-    localStorage.getItem(`conversation:${conversation_id}`)
-  );
-
-  conversation.items.push({
-    role: role,
-    image: image,
-    content: content,
-  });
-
-  localStorage.setItem(
-    `conversation:${conversation_id}`,
-    JSON.stringify(conversation)
-  );
+  await window.storageManager.addMessage(conversation_id, role, image, content);
 };
 
 const load_conversations = async (limit, offset, loader) => {
-  let conversations = [];
-  for (let i = 0; i < localStorage.length; i++) {
-    if (localStorage.key(i).startsWith("conversation:")) {
-      let conversation = localStorage.getItem(localStorage.key(i));
-      conversations.push(JSON.parse(conversation));
-    }
-  }
+  let conversations = await window.storageManager.getAllConversations();
 
   // Vider la nouvelle liste des conversations
   const conversationsList = document.getElementById('conversationsList');
@@ -964,7 +933,7 @@ function toggleAboutSubmenu() {
 
 function logout() {
   if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
-    localStorage.clear();
+    window.storageManager.clearAllConversations();
     window.location.href = '/login';
   }
 }
@@ -990,14 +959,10 @@ console.log('🔧 Patch chat.js pour workspace appliqué');
 window.onload = async () => {
   load_settings_localstorage();
 
-  conversations = 0;
-  for (let i = 0; i < localStorage.length; i++) {
-    if (localStorage.key(i).startsWith("conversation:")) {
-      conversations += 1;
-    }
-  }
+  const allConversations = await window.storageManager.getAllConversations();
+  conversations = allConversations.length;
 
-  if (conversations == 0) localStorage.clear();
+  if (conversations == 0) window.storageManager.clearAllConversations();
 
   await setTimeout(() => {
     load_conversations(20, 0);
@@ -1052,10 +1017,10 @@ const register_settings_localstorage = async () => {
     element.addEventListener(`change`, async (event) => {
       switch (event.target.type) {
         case "checkbox":
-          localStorage.setItem(event.target.id, event.target.checked);
+          window.storageManager.saveSetting(event.target.id, event.target.checked);
           break;
         case "select-one":
-          localStorage.setItem(event.target.id, event.target.selectedIndex);
+          window.storageManager.saveSetting(event.target.id, event.target.selectedIndex);
           break;
         default:
           console.warn("Unresolved element type");
@@ -1068,13 +1033,14 @@ const load_settings_localstorage = async () => {
   settings_ids = ["model"];
   settings_elements = settings_ids.map((id) => document.getElementById(id));
   settings_elements.map((element) => {
-    if (localStorage.getItem(element.id)) {
+    const savedValue = window.storageManager.loadSetting(element.id);
+    if (savedValue !== null) {
       switch (element.type) {
         case "checkbox":
-          element.checked = localStorage.getItem(element.id) === "true";
+          element.checked = savedValue === true;
           break;
         case "select-one":
-          element.selectedIndex = parseInt(localStorage.getItem(element.id));
+          element.selectedIndex = parseInt(savedValue);
           break;
         default:
           console.warn("Unresolved element type");
@@ -1085,12 +1051,12 @@ const load_settings_localstorage = async () => {
 
 // Theme storage for recurring viewers
 const storeTheme = function (theme) {
-  localStorage.setItem("theme", theme);
+  window.storageManager.saveSetting("theme", theme);
 };
 
 // set theme when visitor returns
 const setTheme = function () {
-  const activeTheme = localStorage.getItem("theme");
+  const activeTheme = window.storageManager.loadSetting("theme");
   colorThemes.forEach((themeOption) => {
     if (themeOption.id === activeTheme) {
       themeOption.checked = true;
