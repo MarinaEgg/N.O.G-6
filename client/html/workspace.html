@@ -20,19 +20,19 @@
     <link
       rel="apple-touch-icon"
       sizes="180x180"
-      href="/assets/img/apple-touch-icon.png"
+      href="/client/img/apple-touch-icon.png"
     />
     <link
       rel="icon"
       type="image/png"
       sizes="32x32"
-      href="/assets/img/nog_logo_no_text.png"
+      href="/client/img/nog_logo_no_text.png"
     />
     <link
       rel="icon"
       type="image/png"
       sizes="16x16"
-      href="/assets/img/nog_logo_no_text.png"
+      href="/client/img/nog_logo_no_text.png"
     />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -42,23 +42,23 @@
       rel="stylesheet"
     />
 
-    <link rel="manifest" href="/assets/img/site.webmanifest" />
-    <script src="/assets/js/icons.js"></script>
-    <script src="/assets/js/links.js" defer></script>
+    <link rel="manifest" href="/client/img/site.webmanifest" />
+    <script src="/client/js/icons.js"></script>
+    <script src="/client/js/links.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/markdown-it@latest/dist/markdown-it.min.js"></script>
     <link
       rel="stylesheet"
       href="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@latest/build/styles/base16/dracula.min.css"
     />
     <script>
-      const like_img = `<img src="/assets/img/convertation-icons/like.png" alt="Like">`;
-      const user_image = `<img class="user" src="/assets/img/user-icon.webp" alt="User Avatar">`;
-      const gpt_image = `<img class="user" src="/assets/img/gpt_egg.png" alt="GPT Avatar">`;
-      const imanage_image = `<img class="user" src="/assets/img/imanage_egg.png" alt="iManage Avatar">`;
-      const video_image = `<img class="user" src="/assets/img/imanage_egg.png" alt="Video Icon">`;
-      const nog_image = `<img id="nog_image" class="user" src="/assets/img/nog_logo_no_text.png" alt="nOg logo">`; // egg
-      const loading_video = `<img style="width: 40px; height: 40px; opacity:1; content: url(/assets/img/nog_logo_no_text.png); background-position: center; background-repeat: no-repeat; background-size: cover;" id="nog_video" class="conversation_video">`;
-      const shape = `<img class="assistant-image" id="shape" style="width: 40px; height: 40px;position:absolute; content: url(/assets/img/gpt_egg.png); background-position: center; background-repeat: no-repeat; background-size: cover;">`;
+      const like_img = `<img src="/client/img/convertation-icons/like.png" alt="Like">`;
+      const user_image = `<img class="user" src="/client/img/user-icon.webp" alt="User Avatar">`;
+      const gpt_image = `<img class="user" src="/client/img/gpt_egg.png" alt="GPT Avatar">`;
+      const imanage_image = `<img class="user" src="/client/img/imanage_egg.png" alt="iManage Avatar">`;
+      const video_image = `<img class="user" src="/client/img/imanage_egg.png" alt="Video Icon">`;
+      const nog_image = `<img id="nog_image" class="user" src="/client/img/nog_logo_no_text.png" alt="nOg logo">`; // egg
+      const loading_video = `<img style="width: 40px; height: 40px; opacity:1; content: url(/client/img/nog_logo_no_text.png); background-position: center; background-repeat: no-repeat; background-size: cover;" id="nog_video" class="conversation_video">`;
+      const shape = `<img class="assistant-image" id="shape" style="width: 40px; height: 40px;position:absolute; content: url(/client/img/gpt_egg.png); background-position: center; background-repeat: no-repeat; background-size: cover;">`;
     </script>
     <script>
       const params = new URLSearchParams(window.location.search);
@@ -77,11 +77,11 @@
         transition: 0.5s;
       }
     </style>
-    <link rel="stylesheet" href="/assets/css/style.css" />
-    <link rel="stylesheet" href="/assets/css/glass-buttons.css" />
-    <link rel="stylesheet" href="/assets/css/workspace.css" />
-    <script src="/assets/js/highlight.min.js"></script>
-    <script src="/assets/js/highlightjs-copy.min.js"></script>
+    <link rel="stylesheet" href="/client/css/style.css" />
+    <link rel="stylesheet" href="/client/css/glass-buttons.css" />
+    <link rel="stylesheet" href="/client/css/workspace.css" />
+    <script src="/client/js/highlight.min.js"></script>
+    <script src="/client/js/highlightjs-copy.min.js"></script>
     <script>
       window.conversation_id = `{{chat_id}}`;
     </script>
@@ -327,15 +327,15 @@
     </div>
     
     <!-- Scripts existants -->
-    <script src="/assets/js/icons.js"></script>
-    <script src="/assets/js/utils.js"></script>
-    <script src="/assets/js/storage.js"></script> <!-- AJOUTER CETTE LIGNE -->
-    <script src="/assets/js/event-manager.js"></script> <!-- ❌ AJOUTER ! -->
-    <script src="/assets/js/chat-input-manager.js"></script>
-    <script src="/assets/js/chat.js"></script>
+    <script src="/client/js/icons.js"></script>
+    <script src="/client/js/utils.js"></script>
+    <script src="/client/js/storage.js"></script> <!-- AJOUTER CETTE LIGNE -->
+    <script src="/client/js/event-manager.js"></script> <!-- ❌ AJOUTER ! -->
+    <script src="/client/js/chat-input-manager.js"></script>
+    <script src="/client/js/chat.js"></script>
     
     <!-- Script Modern Chat Bar -->
-    <script src="/assets/js/modern-chat-bar.js"></script>
+    <script src="/client/js/modern-chat-bar.js"></script>
     
     <!-- Initialisation -->
     <script>
@@ -345,13 +345,13 @@
     </script>
     
     <!-- Scripts du système de cartes (ordre important) -->
-    <script src="/assets/js/card-models.js"></script>
-    <script src="/assets/js/card-system.js"></script>
-    <script src="/assets/js/text-card.js"></script>
-    <script src="/assets/js/file-card.js"></script>
-    <script src="/assets/js/floating-card-menu.js"></script>
-    <script src="/assets/js/workspace.js"></script>
+    <script src="/client/js/card-models.js"></script>
+    <script src="/client/js/card-system.js"></script>
+    <script src="/client/js/text-card.js"></script>
+    <script src="/client/js/file-card.js"></script>
+    <script src="/client/js/floating-card-menu.js"></script>
+    <script src="/client/js/workspace.js"></script>
     
-    <link rel="stylesheet" href="/assets/css/card-components.css">
+    <link rel="stylesheet" href="/client/css/card-components.css">
   </body>
 </html>
