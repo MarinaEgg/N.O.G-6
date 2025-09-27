@@ -613,6 +613,7 @@ class WorkspaceManager {
     setupChatIntegration() {
         if (window.location.pathname.includes('/workspace')) {
             this.interceptChatFunctions();
+            this.patchChatFunctionsForWorkspace(); // NOUVELLE LIGNE
         }
     }
     
@@ -630,6 +631,56 @@ class WorkspaceManager {
         };
         
         console.log('Chat functions intercepted for workspace');
+    }
+
+    // NOUVELLE MÉTHODE - Ajouter après setupChatIntegration
+    patchChatFunctionsForWorkspace() {
+        // Protection pour setTheme - message_box peut être null sur workspace
+        const originalSetTheme = window.setTheme;
+        if (originalSetTheme) {
+            window.setTheme = function() {
+                const activeTheme = window.storageManager.loadSetting("theme");
+                const colorThemes = document.querySelectorAll('[name="theme"]');
+                colorThemes.forEach((themeOption) => {
+                    if (themeOption.id === activeTheme) {
+                        themeOption.checked = true;
+                    }
+                });
+                document.documentElement.className = activeTheme;
+                
+                // Protection workspace - message_box n'existe pas
+                const messageBox = document.getElementById('messages');
+                if (window.back_scrolly >= 0 && messageBox) {
+                    messageBox.scrollTo({ top: window.back_scrolly, behavior: "smooth" });
+                }
+            };
+        }
+        
+        // Protection pour load_settings_localstorage - éléments peuvent être null
+        const originalLoadSettings = window.load_settings_localstorage;
+        if (originalLoadSettings) {
+            window.load_settings_localstorage = async function() {
+                const settings_ids = ["model"];
+                const settings_elements = settings_ids.map((id) => document.getElementById(id)).filter(Boolean);
+                settings_elements.map((element) => {
+                    const savedValue = window.storageManager.loadSetting(element.id);
+                    if (savedValue !== null) {
+                        switch (element.type) {
+                            case "checkbox":
+                                element.checked = savedValue === true;
+                                break;
+                            case "select-one":
+                                element.selectedIndex = parseInt(savedValue);
+                                break;
+                            default:
+                                console.warn("Unresolved element type");
+                        }
+                    }
+                });
+            };
+        }
+        
+        console.log('✅ Chat functions patched for workspace compatibility');
     }
 
     connectToMainChat(cardId, cardElement) {
