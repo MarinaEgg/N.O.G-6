@@ -1,353 +1,909 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0 maximum-scale=1.0"
-    />
-    <meta name="description" content="EggOn nOg Legal Chatbot" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <meta property="og:title" content="nOg" />
-    <meta
-      property="og:image"
-      content="https://openai.com/content/images/2022/11/ChatGPT.jpg"
-    />
-    <meta property="og:description" content="EggOn nOg Legal Chatbot" />
-    <meta property="og:url" content="https://chat.acy.dev" />
+// ========== WORKSPACE.JS - VERSION CORRIGÉE AVEC PROTECTION ==========
 
-    <link
-      rel="apple-touch-icon"
-      sizes="180x180"
-      href="/assets/img/apple-touch-icon.png"
-    />
-    <link
-      rel="icon"
-      type="image/png"
-      sizes="32x32"
-      href="/assets/img/nog_logo_no_text.png"
-    />
-    <link
-      rel="icon"
-      type="image/png"
-      sizes="16x16"
-      href="/assets/img/nog_logo_no_text.png"
-    />
+// PROTECTION CRITIQUE : Arrêter l'exécution si pas sur workspace page
+(function() {
+    if (!window.location.pathname.includes('/workspace')) {
+        console.log('🚫 Not on workspace page - workspace.js skipped');
+        return; // Arrêter complètement l'exécution du reste du script
+    }
+    console.log('✅ Workspace page detected - initializing...');
+})();
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Hind:wght@300;400;500;600;700&family=Lora:ital,wght@0,400..700;1,400..700&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap"
-      rel="stylesheet"
-    />
+// ========== WORKSPACE MANAGER AVEC SYSTÈME MODULAIRE ==========
 
-    <link rel="manifest" href="/assets/img/site.webmanifest" />
-    <script src="/assets/js/links.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/markdown-it@latest/dist/markdown-it.min.js"></script>
-    <link
-      rel="stylesheet"
-      href="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@latest/build/styles/base16/dracula.min.css"
-    />
-    <script>
-      const like_img = `<img src="/assets/img/convertation-icons/like.png" alt="Like">`;
-      const user_image = `<img class="user" src="/assets/img/user-icon.webp" alt="User Avatar">`;
-      const gpt_image = `<img class="user" src="/assets/img/gpt_egg.png" alt="GPT Avatar">`;
-      const imanage_image = `<img class="user" src="/assets/img/imanage_egg.png" alt="iManage Avatar">`;
-      const video_image = `<img class="user" src="/assets/img/imanage_egg.png" alt="Video Icon">`;
-      const nog_image = `<img id="nog_image" class="user" src="/assets/img/nog_logo_no_text.png" alt="nOg logo">`; // egg
-      const loading_video = `<img style="width: 40px; height: 40px; opacity:1; content: url(/assets/img/nog_logo_no_text.png); background-position: center; background-repeat: no-repeat; background-size: cover;" id="nog_video" class="conversation_video">`;
-      const shape = `<img class="assistant-image" id="shape" style="width: 40px; height: 40px;position:absolute; content: url(/assets/img/gpt_egg.png); background-position: center; background-repeat: no-repeat; background-size: cover;">`;
-    </script>
-    <script>
-      const params = new URLSearchParams(window.location.search);
-      const back_scrolly = params.get("scrollPos", -1); // scroll level in the chat if back from links
-    </script>
-    <style>
-      .hljs {
-        color: #e9e9f4;
-        background: #28293629;
-        border-radius: var(--border-radius-1);
-        border: 1px solid var(--blur-border);
-        font-size: 15px;
-      }
+class WorkspaceManager {
+    constructor() {
+        this.cards = [];
+        this.selectedCard = null;
+        this.isDragging = false;
+        this.dragOffset = { x: 0, y: 0 };
+        
+        // Chat integration
+        this.cardConversations = new Map();
+        this.activeCardChat = null;
+        this.originalMessageBox = null;
+        
+        this.canvas = null;
+        this.addCardBtn = null;
+        this.saveLayoutBtn = null;
+        
+        // Canvas pan/drag
+        this.canvasIsDragging = false;
+        this.canvasStartPos = { x: 0, y: 0 };
+        this.canvasOffset = { x: 0, y: 0 };
+        
+        // Zoom avec compensation
+        this.zoomLevel = 1.0;
+        this.minZoom = 0.3;
+        this.maxZoom = 3.0;
+        this.zoomStep = 0.1;
+        
+        // Système de cartes modulaire
+        this.cardSystem = null;
+        
+        this.init();
+    }
 
-      .conversation_video {
-        transition: 0.5s;
-      }
-    </style>
-    <link rel="stylesheet" href="/assets/css/style.css" />
-    <link rel="stylesheet" href="/assets/css/workspace.css" />
-    <script>
-      window.conversation_id = `{{chat_id}}`;
-    </script>
-    <title>nOg</title>
-  </head>
-  <body>
-    <div class="gradient"></div>
+    init() {
+        // PROTECTION DOUBLE : Vérifier encore une fois qu'on est sur workspace
+        if (!window.location.pathname.includes('/workspace')) {
+            console.log('🚫 WorkspaceManager init aborted - not on workspace page');
+            return;
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                this.setupElements();
+            });
+        } else {
+            this.setupElements();
+        }
+    }
+
+    setupElements() {
+        // PROTECTION : Vérifier encore avant de chercher les éléments
+        if (!window.location.pathname.includes('/workspace')) {
+            console.log('🚫 setupElements aborted - not on workspace page');
+            return;
+        }
+
+        this.canvas = document.getElementById('workspaceCanvas');
+        this.addCardBtn = document.getElementById('addCardBtn');
+        this.saveLayoutBtn = document.getElementById('saveLayoutBtn');
+        this.originalMessageBox = document.getElementById('messages');
+
+        // PROTECTION : Si on ne trouve pas les éléments workspace, arrêter proprement
+        if (!this.canvas) {
+            console.log('🚫 Workspace elements not found - normal on chat page');
+            return; // ARRÊTER sans retry infini
+        }
+
+        // Initialiser le système de cartes AVANT les event listeners
+        if (typeof CardSystem !== 'undefined') {
+            this.cardSystem = new CardSystem(this);
+        } else {
+            console.error('❌ CardSystem not available! Check script loading order.');
+            return;
+        }
+        
+        // Initialiser le menu flottant
+        if (typeof FloatingCardMenu !== 'undefined') {
+            this.floatingMenu = new FloatingCardMenu(this);
+        } else {
+            console.warn('⚠️ FloatingCardMenu not available, retrying...');
+            setTimeout(() => {
+                if (typeof FloatingCardMenu !== 'undefined') {
+                    this.floatingMenu = new FloatingCardMenu(this);
+                    console.log('✅ FloatingCardMenu initialized after retry');
+                }
+            }, 100);
+        }
+        
+        this.setupEventListeners();
+        this.loadDefaultCards();
+        this.setupChatIntegration();
+        this.initZoom();
+        this.loadZoomLevel();
+        this.updateCanvasBackground();
+        
+        console.log('✅ WorkspaceManager initialized with modular card system');
+    }
+
+    setupEventListeners() {
+        console.log('🔧 Setting up event listeners...');
+        console.log('🔧 addCardBtn found:', !!this.addCardBtn);
+        console.log('🔧 cardSystem available:', !!this.cardSystem);
+        console.log('🔧 floatingMenu available:', !!this.floatingMenu);
+        
+        // Appeler la bonne méthode avec debug
+        this.addCardBtn?.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('🎯 Bouton ajouter carte cliqué - addCardBtn trouvé:', !!this.addCardBtn);
+            console.log('🎯 CardSystem disponible:', !!this.cardSystem);
+            console.log('🎯 TextCard disponible:', typeof TextCard !== 'undefined');
+            console.log('🎯 FileCard disponible:', typeof FileCard !== 'undefined');
+            this.showCardTypeSelector();
+        });
+        
+        this.saveLayoutBtn?.addEventListener('click', () => this.saveLayout());
+        
+        // Canvas drag (panneau)
+        this.canvas?.addEventListener('mousedown', (e) => this.handleCanvasMouseDown(e));
+        
+        // Events globaux
+        document.addEventListener('mousemove', (e) => this.handleGlobalMouseMove(e));
+        document.addEventListener('mouseup', () => this.handleGlobalMouseUp());
+        
+        // Escape pour fermer les modals
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                this.hideCardTypeSelector();
+                // Masquer aussi le menu flottant
+                if (this.floatingMenu) {
+                    this.floatingMenu.hide();
+                }
+            }
+        });
+        
+        // Gestion des clics pour le menu flottant
+        document.addEventListener('click', (e) => {
+            this.handleDocumentClick(e);
+        });
+        
+        // Gestion du redimensionnement et scroll pour le menu flottant
+        window.addEventListener('resize', () => {
+            if (this.floatingMenu) {
+                this.floatingMenu.handleViewportChange();
+            }
+        });
+        
+        window.addEventListener('scroll', () => {
+            if (this.floatingMenu) {
+                this.floatingMenu.handleViewportChange();
+            }
+        });
+    }
+
+    // ========== SÉLECTEUR DE TYPE DE CARTE ==========
     
-    <!-- Bouton hamburger externe (visible quand sidebar fermée) -->
-    <button class="sidebar-toggle-external" id="sidebarToggleExternal" onclick="toggleSidebar()">
-      <i class="fas fa-bars"></i>
-    </button>
-    
-    <!-- Wrapper pour l'effet push -->
-    <div class="chat-main-container" id="chatMainContainer">
-      <div class="row">
-        <!-- Conversations sidebar reste ici mais sera positionnée en fixed -->
-        <div class="conversations shadow" id="conversations">
-          <!-- Header avec hamburger et nom produit -->
-          <div class="sidebar-header">
-            <button class="hamburger-icon" aria-label="Toggle sidebar">
-              <i class="fas fa-bars"></i>
+    showCardTypeSelector() {
+        console.log('🎯 showCardTypeSelector appelée');
+        
+        // Supprimer l'ancien overlay s'il existe
+        const existingOverlay = document.querySelector('.modal-overlay');
+        if (existingOverlay) {
+            existingOverlay.remove();
+        }
+        
+        // Créer l'overlay
+        const overlay = document.createElement('div');
+        overlay.className = 'modal-overlay';
+        
+        // Créer le sélecteur
+        const selector = document.createElement('div');
+        selector.className = 'card-type-selector';
+        selector.innerHTML = `
+            <button class="selector-cancel">
+                <i class="fas fa-times"></i>
             </button>
-            <span class="product-name">N.O.G</span>
-          </div>
-
-          <!-- Bouton nouvelle conversation avec texte -->
-          <div class="new-conversation-section">
-            <button class="new-conversation-btn" onclick="new_conversation()" aria-label="Nouvelle conversation">
-              <i class="fas fa-plus"></i>
-            </button>
-            <span class="new-conversation-label">Nouvelle conversation</span>
-          </div>
-
-          <!-- Navigation principale -->
-          <div class="main-navigation">
-            <div class="nav-item" data-section="discussions" onclick="switchToDiscussions()">
-              <i class="fas fa-comments"></i>
-              <span>Discussions</span>
-            </div>
-            <div class="nav-item active" data-section="workspace" onclick="switchToWorkspace()">
-              <i class="fas fa-folder"></i>
-              <span>Espace de travail</span>
-            </div>
-            <div class="nav-item" data-section="agents" onclick="openLibrary()">
-              <div class="agents-icon">
-                <i class="fas fa-search mini-icon"></i>
-                <i class="fas fa-brain mini-icon"></i>
-                <i class="fas fa-pen mini-icon"></i>
-                <i class="fas fa-file mini-icon"></i>
-              </div>
-              <span>Agents</span>
-            </div>
-          </div>
-
-          <!-- Section récents avec conversations dynamiques -->
-          <div class="recents-section">
-            <div class="recents-header">
-              <span>Récents</span>
-              <i class="fas fa-ellipsis-h" onclick="delete_conversations()" title="Supprimer toutes les conversations"></i>
-            </div>
-            <div class="conversations-list" id="conversationsList">
-              <!-- Les conversations seront injectées ici par JavaScript -->
-            </div>
-          </div>
-
-          <!-- Footer profil utilisateur -->
-          <div class="user-profile" id="userProfile">
-            <div class="user-info">
-              <div class="user-avatar">U</div>
-              <span class="user-name">Utilisateur</span>
-            </div>
-            <i class="fas fa-chevron-down"></i>
-          </div>
-
-          <!-- Menu utilisateur (caché par défaut) -->
-          <div class="user-menu" id="userMenu">
-            <div class="user-menu-header">
-              <span class="user-email">user@cabinet.fr</span>
-              <div class="user-avatar-large">U</div>
-            </div>
-            <div class="menu-separator"></div>
-            <div class="menu-item" onclick="openSettings()">
-              <i class="fas fa-cog"></i>
-              <span>Paramètres</span>
-            </div>
-            <div class="menu-item submenu-trigger" onclick="toggleLanguageSubmenu()">
-              <i class="fas fa-language"></i>
-              <span>Langue</span>
-              <i class="fas fa-chevron-right"></i>
-            </div>
-            <div class="menu-item submenu-trigger" onclick="toggleAboutSubmenu()">
-              <i class="fas fa-info-circle"></i>
-              <span>En savoir plus</span>
-              <i class="fas fa-chevron-right"></i>
-            </div>
-            <div class="menu-separator"></div>
-            <div class="menu-item logout" onclick="logout()">
-              <i class="fas fa-sign-out-alt"></i>
-              <span>Se déconnecter</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="workspace-container disable-scrollbars">
-          <!-- Header workspace -->
-          <div class="workspace-header">
-            <h1>Espace de travail juridique</h1>
-            <div class="workspace-actions">
-              <button class="workspace-btn" id="addCardBtn">
-                <i class="fas fa-plus"></i>
-                Nouvelle carte
-              </button>
-              <button class="workspace-btn" id="saveLayoutBtn">
-                <i class="fas fa-save"></i>
-                Sauvegarder
-              </button>
-            </div>
-          </div>
-
-          <!-- Zone des cartes -->
-          <div class="workspace-canvas" id="workspaceCanvas">
-            <!-- Les cartes seront ajoutées ici dynamiquement -->
-          </div>
-
-          <!-- La barre de chat reste identique -->
-          <div class="modern-chat-container">
-            <div class="modern-chat-bar">
-              <!-- Zone de saisie principale avec boutons intégrés -->
-              <div class="chat-input-wrapper">
-                <div class="chat-input-content">
-                  <!-- Bouton Plus (+) intégré -->
-                  <div class="action-button in-chat" id="plusButton">
-                    <i class="fas fa-plus"></i>
-                  </div>
-
-                  <!-- Zone de texte UNIQUE -->
-                  <div class="chat-textarea-container">
-                    <textarea 
-                      class="chat-textarea" 
-                      placeholder="Posez votre question à N.O.G"
-                      id="message-input"
-                      rows="1"
-                    ></textarea>
-                  </div>
-
-                  <!-- Bouton Connecteur intégré -->
-                  <div class="action-button in-chat" id="connectorButton">
-                    <i class="fas fa-plug"></i>
-                  </div>
-
-                  <!-- Bouton d'envoi -->
-                  <button class="send-button" id="send-button" onclick="handle_ask()">
-                    <i class="fas fa-arrow-right"></i>
-                  </button>
+            <h3 class="selector-title">Choisir le type de carte</h3>
+            <div class="card-type-options">
+                <div class="card-type-option" data-type="text">
+                    <div class="card-type-icon">
+                        <i class="fas fa-edit"></i>
+                    </div>
+                    <div>
+                        <h4 class="card-type-title">Carte Texte</h4>
+                        <p class="card-type-desc">Collaboration IA et documents</p>
+                    </div>
                 </div>
-              </div>
+                <div class="card-type-option" data-type="file">
+                    <div class="card-type-icon">
+                        <i class="fas fa-upload"></i>
+                    </div>
+                    <div>
+                        <h4 class="card-type-title">Upload File</h4>
+                        <p class="card-type-desc">PDF et images avec preview</p>
+                    </div>
+                </div>
             </div>
-          </div>
-        </div>
-      </div>
-    </div>
+        `;
+        
+        // Events
+        overlay.addEventListener('click', () => {
+            console.log('🎯 Overlay cliqué - fermeture');
+            this.hideCardTypeSelector();
+        });
+        
+        selector.addEventListener('click', (e) => e.stopPropagation());
+        
+        // Bouton fermer
+        const cancelBtn = selector.querySelector('.selector-cancel');
+        cancelBtn.addEventListener('click', () => {
+            console.log('🎯 Bouton cancel cliqué');
+            this.hideCardTypeSelector();
+        });
+        
+        // Options de type
+        selector.querySelectorAll('.card-type-option').forEach(option => {
+            option.addEventListener('click', () => {
+                const cardType = option.getAttribute('data-type');
+                console.log('🎯 Type sélectionné:', cardType);
+                this.createCardOfType(cardType);
+                this.hideCardTypeSelector();
+            });
+        });
+        
+        // Ajouter au DOM
+        document.body.appendChild(overlay);
+        overlay.appendChild(selector);
+        
+        console.log('🎯 Modal ajoutée au DOM');
+    }
+
+    hideCardTypeSelector() {
+        console.log('🎯 hideCardTypeSelector appelée');
+        const overlay = document.querySelector('.modal-overlay');
+        if (overlay) {
+            overlay.remove();
+            console.log('🎯 Modal supprimée');
+        }
+    }
+
+    createCardOfType(type) {
+        console.log('🎯 Création carte type:', type);
+        
+        // Vérifier que le système de cartes est initialisé
+        if (!this.cardSystem) {
+            console.error('❌ Card system not initialized');
+            return;
+        }
+        
+        let cardData;
+        const position = this.getNewCardPosition();
+        
+        // Vérifier que les classes existent
+        if (type === 'text') {
+            if (typeof TextCard === 'undefined') {
+                console.error('❌ TextCard class not found - script pas chargé');
+                alert('Erreur: TextCard non trouvée. Vérifiez que text-card.js est chargé.');
+                return;
+            }
+            cardData = TextCard.createDefaultTextCard(position);
+        } else if (type === 'file') {
+            if (typeof FileCard === 'undefined') {
+                console.error('❌ FileCard class not found - script pas chargé');
+                alert('Erreur: FileCard non trouvée. Vérifiez que file-card.js est chargé.');
+                return;
+            }
+            cardData = FileCard.createDefaultFileCard(position);
+        } else {
+            console.error('❌ Type de carte inconnu:', type);
+            return;
+        }
+        
+        console.log('🎯 Données carte:', cardData);
+        
+        const card = this.cardSystem.createCard(cardData);
+        if (card) {
+            this.cards.push({ element: card.element, data: card.data, cardInstance: card });
+            console.log('✅ Carte créée avec succès:', type);
+        } else {
+            console.error('❌ Échec création carte');
+        }
+    }
+
+    getNewCardPosition() {
+        // Calculer une position libre pour la nouvelle carte
+        const baseX = 200;
+        const baseY = 200;
+        const offset = this.cards.length * 30;
+        
+        return {
+            x: baseX + offset,
+            y: baseY + offset
+        };
+    }
+
+    // ========== MÉTHODES DE DRAG ==========
     
-    <!-- Menus déroulants SORTIS de la barre de chat -->
-    <div class="dropdown-menu" id="plusMenu">
-      <div class="dropdown-item" onclick="handleFileUpload()">
-        <i class="fas fa-file-pdf"></i>
-        <div class="dropdown-item-content">
-          <div class="dropdown-item-title">Téléverser un fichier</div>
-          <div class="dropdown-item-subtitle">PDF, Word, Excel, PowerPoint</div>
-        </div>
-      </div>
-      <div class="dropdown-item" onclick="handleScreenshot()">
-        <i class="fas fa-camera"></i>
-        <div class="dropdown-item-content">
-          <div class="dropdown-item-title">Prendre une capture d'écran</div>
-          <div class="dropdown-item-subtitle">Capturer votre écran</div>
-        </div>
-      </div>
-      <div class="dropdown-item" onclick="handleFolderSelection()">
-        <i class="fas fa-folder"></i>
-        <div class="dropdown-item-content">
-          <div class="dropdown-item-title">Utiliser un dossier</div>
-          <div class="dropdown-item-subtitle">Matières d'avocat - iManage</div>
-        </div>
-      </div>
-    </div>
+    handleMouseDown(e, cardElement) {
+        e.preventDefault();
+        
+        if (e.target.closest('.card-action-btn')) return;
+        
+        this.selectedCard = cardElement;
+        this.isDragging = true;
+        
+        const rect = cardElement.getBoundingClientRect();
+        const canvasRect = this.canvas.getBoundingClientRect();
+        
+        // Compenser le zoom dans l'offset
+        this.dragOffset = {
+            x: (e.clientX - rect.left) / this.zoomLevel,
+            y: (e.clientY - rect.top) / this.zoomLevel
+        };
+        
+        cardElement.classList.add('dragging');
+        document.body.style.cursor = 'grabbing';
+    }
 
-    <div class="dropdown-menu connector-menu" id="connectorMenu">
-      <div class="connector-item" onclick="handleDeepSearch()">
-        <div class="connector-header">
-          <div class="connector-icon">
-            <i class="fas fa-clock"></i>
-          </div>
-          <div class="connector-title">Recherche approfondie</div>
-        </div>
-        <div class="connector-description">
-          Recherche avancée avec Jina.ai pour des résultats complets
-        </div>
-      </div>
-      <div class="connector-item" onclick="handleAddConnectors()">
-        <div class="connector-header">
-          <div class="connector-icon">
-            <i class="fas fa-project-diagram"></i>
-          </div>
-          <div class="connector-title">Ajouter des connecteurs</div>
-        </div>
-        <div class="connector-description">
-          Configurer de nouveaux connecteurs et intégrations
-        </div>
-      </div>
-      <div class="connector-item" onclick="handleIManageConnection()">
-        <div class="connector-header">
-          <div class="connector-icon">
-            <i class="fas fa-briefcase"></i>
-          </div>
-          <div class="connector-title">iManage</div>
-        </div>
-        <div class="connector-description">
-          Connectez-vous à iManage pour coordonner les matières
-        </div>
-      </div>
-    </div>
+    handleMouseMove(e) {
+        if (!this.isDragging || !this.selectedCard) return;
+        
+        e.preventDefault();
+        
+        const canvasRect = this.canvas.getBoundingClientRect();
+        
+        // Position compensée avec zoom et translation du canvas
+        const newX = (e.clientX - canvasRect.left) / this.zoomLevel - this.canvasOffset.x / this.zoomLevel - this.dragOffset.x;
+        const newY = (e.clientY - canvasRect.top) / this.zoomLevel - this.canvasOffset.y / this.zoomLevel - this.dragOffset.y;
+        
+        this.selectedCard.style.left = newX + 'px';
+        this.selectedCard.style.top = newY + 'px';
+        
+        // Mettre à jour les données de la carte
+        const cardId = this.selectedCard.getAttribute('data-card-id');
+        const card = this.cardSystem.getCard(cardId);
+        if (card) {
+            card.updatePosition(newX, newY);
+        }
+    }
+
+    handleMouseUp() {
+        if (!this.isDragging) return;
+        
+        this.isDragging = false;
+        document.body.style.cursor = 'default';
+        
+        if (this.selectedCard) {
+            this.selectedCard.classList.remove('dragging');
+            this.selectedCard = null;
+        }
+        
+        this.dragOffset = { x: 0, y: 0 };
+    }
+
+    // ========== MÉTHODES CANVAS ==========
     
-    <!-- Les sidNav restent en dehors du wrapper -->
-    <div id="librarySideNav" class="sidenav">
-      <div class="library-side-nav-content"></div>
-    </div>
-    <div id="LinksSideNav" class="sidenav">
-      <div class="links-side-nav-content"></div>
-    </div>
+    handleCanvasMouseDown(e) {
+        if (e.target.closest('.workspace-card')) {
+            return;
+        }
+        
+        this.canvasIsDragging = true;
+        this.canvasStartPos = { x: e.clientX, y: e.clientY };
+        
+        this.canvas.style.cursor = 'grabbing';
+        document.body.style.cursor = 'grab';
+        
+        e.preventDefault();
+    }
 
-    <!-- Overlay Drag & Drop -->
-    <div class="drag-drop-overlay" id="dragDropOverlay">
-      <div class="drag-drop-content">
-        <div class="drag-drop-icon">
-          <i class="fas fa-cloud-upload-alt"></i>
-        </div>
-        <div class="drag-drop-text">Déposez vos fichiers ici</div>
-        <div class="drag-drop-subtext">PDF, Word, Excel, PowerPoint acceptés</div>
-      </div>
-    </div>
+    handleGlobalMouseMove(e) {
+        if (this.isDragging && this.selectedCard) {
+            this.handleMouseMove(e);
+            return;
+        }
+        
+        if (this.canvasIsDragging) {
+            const deltaX = e.clientX - this.canvasStartPos.x;
+            const deltaY = e.clientY - this.canvasStartPos.y;
+            
+            this.canvasOffset.x += deltaX;
+            this.canvasOffset.y += deltaY;
+            
+            this.applyCanvasTransform();
+            this.updateCanvasBackground();
+            
+            this.canvasStartPos = { x: e.clientX, y: e.clientY };
+            
+            e.preventDefault();
+        }
+    }
+
+    handleGlobalMouseUp() {
+        if (this.isDragging) {
+            this.handleMouseUp();
+        }
+        
+        if (this.canvasIsDragging) {
+            this.canvasIsDragging = false;
+            this.canvas.style.cursor = 'grab';
+            document.body.style.cursor = 'default';
+        }
+    }
+
+    applyCanvasTransform() {
+        if (!this.canvas) return;
+        
+        const scale = this.zoomLevel;
+        this.canvas.style.transform = `scale(${scale}) translate(${this.canvasOffset.x / scale}px, ${this.canvasOffset.y / scale}px)`;
+    }
+
+    updateCanvasBackground() {
+        if (!this.canvas) return;
+        
+        const dotSize = 30 * this.zoomLevel;
+        const bgX = (this.canvasOffset.x * this.zoomLevel) % dotSize;
+        const bgY = (this.canvasOffset.y * this.zoomLevel) % dotSize;
+
+        this.canvas.style.backgroundSize = `${dotSize}px ${dotSize}px`;
+        this.canvas.style.backgroundPosition = `${bgX}px ${bgY}px`;
+    }
+
+    // ========== MÉTHODES ZOOM ==========
     
-    <!-- Librairies externes d'abord -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="/assets/js/highlightjs-copy.min.js"></script>
-    <script src="/assets/js/highlight.min.js"></script>
+    initZoom() {
+        this.createZoomControls();
+        this.setupZoomEvents();
+    }
 
-    <!-- Nos modules dans l'ordre de dépendance -->
-    <script src="/assets/js/icons.js"></script>
-    <script src="/assets/js/utils.js"></script>           <!-- 1. Fonctions pures -->
-    <script src="/assets/js/storage.js"></script>         <!-- 2. Stockage -->
-    <script src="/assets/js/action-manager.js"></script>  <!-- 3. Actions -->
-    <script src="/assets/js/conversation-manager.js"></script> <!-- 4. Chat logic -->
-    <script src="/assets/js/event-manager.js"></script>   <!-- 5. Event handling -->
+    createZoomControls() {
+        if (document.getElementById('zoom-controls')) return;
+        
+        const zoomControls = document.createElement('div');
+        zoomControls.id = 'zoom-controls';
+        zoomControls.className = 'zoom-controls';
+        
+        zoomControls.innerHTML = `
+            <button id="zoom-out" title="Zoom arrière">−</button>
+            <span id="zoom-percentage">100%</span>
+            <button id="zoom-in" title="Zoom avant">+</button>
+            <button id="zoom-reset" title="Reset zoom">⌂</button>
+        `;
+        
+        document.body.appendChild(zoomControls);
+    }
 
-    <!-- SCRIPTS WORKSPACE OBLIGATOIRES - AJOUTÉS -->
-    <script src="/assets/js/card-models.js"></script>     <!-- Models de cartes -->
-    <script src="/assets/js/text-card.js"></script>       <!-- Cartes texte -->
-    <script src="/assets/js/file-card.js"></script>       <!-- Cartes fichier -->
-    <script src="/assets/js/card-system.js"></script>     <!-- Système cartes -->
-    <script src="/assets/js/floating-card-menu.js"></script> <!-- Menu flottant -->
-    <script src="/assets/js/chat.js"></script>            <!-- Chat logic aussi nécessaire -->
+    setupZoomEvents() {
+        document.getElementById('zoom-in')?.addEventListener('click', () => this.zoomIn());
+        document.getElementById('zoom-out')?.addEventListener('click', () => this.zoomOut());
+        document.getElementById('zoom-reset')?.addEventListener('click', () => this.resetZoom());
+        
+        // Zoom avec molette (Ctrl+molette)
+        this.canvas?.addEventListener('wheel', (e) => {
+            if (e.ctrlKey) {
+                e.preventDefault();
+                const delta = e.deltaY > 0 ? -this.zoomStep : this.zoomStep;
+                this.setZoom(this.zoomLevel + delta);
+            }
+        });
+    }
 
-    <!-- Page-specific scripts -->
-    <script src="/assets/js/workspace.js"></script>       <!-- Pour workspace.html -->
+    zoomIn() {
+        this.setZoom(Math.min(this.maxZoom, this.zoomLevel + this.zoomStep));
+    }
 
-    <!-- ORCHESTRATEUR EN DERNIER -->
-    <script src="/assets/js/main.js"></script>            <!-- 6. Point d'entrée -->
+    zoomOut() {
+        this.setZoom(Math.max(this.minZoom, this.zoomLevel - this.zoomStep));
+    }
+
+    resetZoom() {
+        this.setZoom(1.0);
+        this.canvasOffset = { x: 0, y: 0 };
+        this.applyCanvasTransform();
+        this.updateCanvasBackground();
+    }
+
+    setZoom(zoomValue) {
+        this.zoomLevel = Math.max(this.minZoom, Math.min(this.maxZoom, zoomValue));
+        this.applyCanvasTransform();
+        this.updateCanvasBackground();
+        this.updateZoomDisplay();
+        localStorage.setItem('workspace-zoom-level', this.zoomLevel.toString());
+        
+        // Repositionner le menu flottant si visible
+        if (this.floatingMenu && this.floatingMenu.isVisible && this.selectedCard) {
+            this.floatingMenu.handleViewportChange();
+        }
+    }
+
+    updateZoomDisplay() {
+        const percentage = document.getElementById('zoom-percentage');
+        if (percentage) {
+            percentage.textContent = Math.round(this.zoomLevel * 100) + '%';
+        }
+    }
+
+    loadZoomLevel() {
+        const saved = localStorage.getItem('workspace-zoom-level');
+        if (saved) {
+            const zoomLevel = parseFloat(saved);
+            if (zoomLevel >= this.minZoom && zoomLevel <= this.maxZoom) {
+                this.setZoom(zoomLevel);
+            }
+        }
+    }
+
+    // ========== CHARGEMENT DES CARTES PAR DÉFAUT ==========
+
+    loadDefaultCards() {
+        console.log('Workspace vierge - prêt pour création manuelle');
+        
+        if (!this.cardSystem) {
+            console.error('Card system not ready');
+            return;
+        }
+        
+        console.log('Workspace prêt - 0 cartes chargées');
+    }
+
+    // ========== MÉTHODES UTILITAIRES ==========
+
+    selectCard(cardElement) {
+        // Désélectionner toutes les autres cartes
+        this.cards.forEach(card => {
+            if (card.element) {
+                card.element.classList.remove('selected');
+            }
+        });
+        
+        // Sélectionner la nouvelle carte
+        cardElement.classList.add('selected');
+        this.selectedCard = cardElement;
+        
+        // Afficher le menu flottant pour la carte sélectionnée
+        const cardId = cardElement.getAttribute('data-card-id');
+        const cardInstance = this.cardSystem.getCard(cardId);
+        
+        if (cardInstance && this.floatingMenu) {
+            this.floatingMenu.show(cardElement, cardInstance);
+        }
+    }
     
-    <link rel="stylesheet" href="/assets/css/card-components.css">
-  </body>
-</html>
+    /**
+     * Gère les clics sur le document pour masquer le menu flottant
+     */
+    handleDocumentClick(e) {
+        if (!this.floatingMenu || !this.floatingMenu.isVisible) return;
+        
+        // Ne pas masquer si on clique sur le menu flottant
+        if (e.target.closest('.floating-card-menu')) {
+            return;
+        }
+        
+        // Ne pas masquer si on clique sur une carte (cela va sélectionner une autre carte)
+        if (e.target.closest('.workspace-card')) {
+            return;
+        }
+        
+        // Masquer le menu pour tous les autres clics
+        this.floatingMenu.hide();
+        
+        // Désélectionner la carte courante
+        if (this.selectedCard) {
+            this.selectedCard.classList.remove('selected');
+            this.selectedCard = null;
+        }
+    }
+
+    saveLayout() {
+        const layout = this.cards.map(card => {
+            if (!card.cardInstance) return null;
+            
+            return {
+                id: card.cardInstance.data.id,
+                type: card.cardInstance.data.type,
+                position: {
+                    x: parseInt(card.element.style.left) || 0,
+                    y: parseInt(card.element.style.top) || 0
+                },
+                pinned: card.element.classList.contains('pinned')
+            };
+        }).filter(Boolean);
+        
+        localStorage.setItem('workspace-layout', JSON.stringify(layout));
+        
+        const notification = document.createElement('div');
+        notification.textContent = 'Layout sauvegardé !';
+        notification.style.cssText = `
+            position: fixed; top: 20px; right: 20px; z-index: 10000;
+            background: rgba(34, 197, 94, 0.9); color: white;
+            padding: 12px 20px; border-radius: 8px;
+            font-family: Inter, sans-serif; font-size: 14px;
+        `;
+        document.body.appendChild(notification);
+        setTimeout(() => notification.remove(), 2000);
+    }
+
+    // ========== INTÉGRATION CHAT ==========
+    
+    setupChatIntegration() {
+        if (window.location.pathname.includes('/workspace')) {
+            this.interceptChatFunctions();
+            this.patchChatFunctionsForWorkspace(); // NOUVELLE LIGNE
+        }
+    }
+    
+    interceptChatFunctions() {
+        if (window.original_ask_gpt) return;
+        
+        window.original_ask_gpt = window.ask_gpt;
+        
+        window.ask_gpt = async (message) => {
+            if (this.activeCardChat) {
+                return this.handleCardChatMessage(message, this.activeCardChat);
+            } else {
+                return window.original_ask_gpt(message);
+            }
+        };
+        
+        console.log('Chat functions intercepted for workspace');
+    }
+
+    // NOUVELLE MÉTHODE - Ajouter après setupChatIntegration
+    patchChatFunctionsForWorkspace() {
+        // Protection pour setTheme - message_box peut être null sur workspace
+        const originalSetTheme = window.setTheme;
+        if (originalSetTheme) {
+            window.setTheme = function() {
+                const activeTheme = window.storageManager.loadSetting("theme");
+                const colorThemes = document.querySelectorAll('[name="theme"]');
+                colorThemes.forEach((themeOption) => {
+                    if (themeOption.id === activeTheme) {
+                        themeOption.checked = true;
+                    }
+                });
+                document.documentElement.className = activeTheme;
+                
+                // Protection workspace - message_box n'existe pas
+                const messageBox = document.getElementById('messages');
+                if (window.back_scrolly >= 0 && messageBox) {
+                    messageBox.scrollTo({ top: window.back_scrolly, behavior: "smooth" });
+                }
+            };
+        }
+        
+        // Protection pour load_settings_localstorage - éléments peuvent être null
+        const originalLoadSettings = window.load_settings_localstorage;
+        if (originalLoadSettings) {
+            window.load_settings_localstorage = async function() {
+                const settings_ids = ["model"];
+                const settings_elements = settings_ids.map((id) => document.getElementById(id)).filter(Boolean);
+                settings_elements.map((element) => {
+                    const savedValue = window.storageManager.loadSetting(element.id);
+                    if (savedValue !== null) {
+                        switch (element.type) {
+                            case "checkbox":
+                                element.checked = savedValue === true;
+                                break;
+                            case "select-one":
+                                element.selectedIndex = parseInt(savedValue);
+                                break;
+                            default:
+                                console.warn("Unresolved element type");
+                        }
+                    }
+                });
+            };
+        }
+        
+        console.log('✅ Chat functions patched for workspace compatibility');
+    }
+
+    connectToMainChat(cardId, cardElement) {
+        if (this.activeCardChat && this.activeCardChat !== cardId) {
+            this.disconnectFromMainChat();
+        }
+        
+        this.activeCardChat = cardId;
+        this.selectedCard = cardElement;
+        
+        const textarea = document.getElementById('message-input');
+        if (textarea) {
+            const cardTitle = cardElement.querySelector('.card-title').textContent;
+            textarea.placeholder = `Discuter avec "${cardTitle}"...`;
+        }
+        
+        this.showChatIndicator(cardElement.querySelector('.card-title').textContent);
+        
+        console.log(`Carte ${cardId} connectée au chat principal`);
+    }
+    
+    disconnectFromMainChat() {
+        if (!this.activeCardChat) return;
+        
+        const textarea = document.getElementById('message-input');
+        if (textarea) {
+            textarea.placeholder = 'Posez votre question à N.O.G';
+        }
+        
+        const indicator = document.querySelector('.chat-card-indicator');
+        if (indicator) {
+            indicator.remove();
+        }
+        
+        // Désactiver le bouton chat de l'ancienne carte
+        const prevCard = this.cards.find(c => c.data && c.data.id === this.activeCardChat);
+        if (prevCard && prevCard.element) {
+            const chatToggleBtn = prevCard.element.querySelector('.chat-toggle-btn');
+            chatToggleBtn?.classList.remove('active');
+        }
+        
+        this.activeCardChat = null;
+        this.selectedCard = null;
+        
+        console.log('Déconnecté du chat principal');
+    }
+    
+    showChatIndicator(cardTitle) {
+        const existingIndicator = document.querySelector('.chat-card-indicator');
+        if (existingIndicator) {
+            existingIndicator.remove();
+        }
+        
+        const indicator = document.createElement('div');
+        indicator.className = 'chat-card-indicator';
+        indicator.innerHTML = `
+            <i class="fas fa-link"></i>
+            <span>Connecté à: ${cardTitle}</span>
+            <button onclick="window.workspaceManager.disconnectFromMainChat()" title="Déconnecter">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+        
+        const chatContainer = document.querySelector('.modern-chat-container');
+        if (chatContainer) {
+            chatContainer.parentNode.insertBefore(indicator, chatContainer);
+        }
+    }
+    
+    async handleCardChatMessage(message, cardId) {
+        try {
+            const card = this.cardSystem.getCard(cardId);
+            if (!card || card.type !== 'text') {
+                return window.original_ask_gpt(message);
+            }
+
+            const token = this.generateMessageId();
+            card.addDocumentSection("", token);
+            
+            // VERSION SIMPLIFIÉE - pas d'enrichissement
+            const documentPrompt = this.buildDocumentPrompt(message, cardId);
+            await this.streamToDocument(documentPrompt, cardId, token, card);
+            
+        } catch (error) {
+            console.error('Erreur génération document:', error);
+            const card = this.cardSystem.getCard(cardId);
+            if (card) {
+                card.addDocumentSection('Erreur', 'error-' + Date.now());
+                card.finalizeDocumentSection('error-' + Date.now(), 'Erreur de connexion au service IA.');
+            }
+        }
+    }
+
+    async streamToDocument(prompt, cardId, token, card) {
+        try {
+            const response = await fetch(`/backend-api/v2/conversation`, {
+                method: 'POST',
+                headers: {
+                    'content-type': 'application/json',
+                    'accept': 'text/event-stream',
+                },
+                body: JSON.stringify({
+                    conversation_id: window.conversation_id || `workspace-doc-${cardId}`,
+                    action: '_ask',
+                    model: 'Eggon-V1',
+                    meta: {
+                        id: token,
+                        content: {
+                            conversation: [],
+                            content_type: 'text',
+                            parts: [{ content: prompt, role: 'user' }],
+                        },
+                    },
+                }),
+            });
+            
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = '';
+            let generatedContent = '';
+            
+            while (true) {
+                const { value, done } = await reader.read();
+                if (done) break;
+                
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n');
+                buffer = lines.pop() || '';
+                
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        const eventData = line.slice(6).trim();
+                        if (eventData === '[DONE]') {
+                            card.finalizeDocumentSection(token, generatedContent);
+                            return;
+                        }
+                        
+                        try {
+                            const dataObject = JSON.parse(eventData);
+                            if (dataObject.response) {
+                                generatedContent += dataObject.response;
+                                card.updateDocumentSection(token, generatedContent);
+                            }
+                        } catch (e) {
+                            console.error('Erreur parsing JSON:', e);
+                        }
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Erreur streaming document:', error);
+            card.finalizeDocumentSection(token, 'Erreur de connexion.');
+        }
+    }
+
+    buildDocumentPrompt(userMessage, cardId) {
+        const card = this.cardSystem.getCard(cardId);
+        const cardTitle = card ? (card.data.mainTitle || 'Document') : 'Document';
+        const existingContent = card ? card.getDocumentContent() : '';
+        
+        const prompt = "Tu es un assistant spécialisé dans la rédaction de documents professionnels.\n\n" +
+            "Contexte : Document \"" + cardTitle + "\"\n" +
+            "Contenu existant : " + existingContent + "\n\n" +
+            "Instruction : " + userMessage + "\n\n" +
+            "IMPORTANTE - COMMANDES JAVASCRIPT :\n" +
+            "- Pour changer le titre du document, utilise EXACTEMENT ce format :\n" +
+            "```javascript\n" +
+            "card.setTitle(\"Nouveau Titre\");\n" +
+            "```\n\n" +
+            "- Le code JavaScript sera automatiquement exécuté\n" +
+            "- Exemple complet :\n" +
+            "```javascript\n" +
+            "card.setTitle(\"Contrat de Vente\");\n" +
+            "```\n\n" +
+            "Pour le contenu du document :\n" +
+            "- Génère du contenu professionnel structuré\n" +
+            "- Utilise des titres avec ## et ###\n" +
+            "- Du texte bien formaté\n" +
+            "- Style document de travail\n\n" +
+            "Si tu veux changer le titre, mets le code JavaScript AU DÉBUT de ta réponse.";
+            
+        return prompt;
+    }
+
+    generateMessageId() {
+        return Date.now().toString(36) + Math.random().toString(36).substr(2);
+    }
+
+    // ========== MÉTHODES DE COMPATIBILITÉ ==========
+
+    addCard(cardData = null) {
+        // Méthode de compatibilité - redirige vers le nouveau système
+        if (cardData) {
+            const card = this.cardSystem.createCard(cardData);
+            if (card) {
+                this.cards.push({ element: card.element, data: card.data, cardInstance: card });
+                return card;
+            }
+        } else {
+            // Si pas de données, afficher le sélecteur
+            this.showCardTypeSelector();
+        }
+    }
+}
+
+// ========== INITIALISATION GLOBALE AVEC PROTECTION ==========
+
+// Seulement initialiser si on est sur workspace page
+if (window.location.pathname.includes('/workspace')) {
+    // Initialiser le workspace
+    document.addEventListener('DOMContentLoaded', () => {
+        window.workspaceManager = new WorkspaceManager();
+        
+        // Initialize workspace
+        setTimeout(() => {
+            // Initialization code here
+        }, 1000);
+    });
+} else {
+    console.log('Workspace manager not initialized - not on workspace page');
+}
+
+// Export pour utilisation en module si nécessaire
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = WorkspaceManager;
+}
