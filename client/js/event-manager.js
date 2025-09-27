@@ -369,30 +369,11 @@ class EventManager {
     // ========== MÉTHODES DE GESTION ==========
     
     async handleMessageSubmit() {
-        if (window.handle_ask && typeof window.handle_ask === 'function') {
-            await window.handle_ask();
-        } else {
-            console.error('handle_ask function not available');
-        }
+        return await window.actionManager.handleMessageSubmit();
     }
 
     toggleSidebar() {
-        const body = document.body;
-        const isOpen = body.classList.contains('sidebar-open');
-        
-        if (isOpen) {
-            body.classList.remove('sidebar-open');
-            if (window.storageManager) {
-                window.storageManager.saveSetting('sidebarOpen', false);
-            }
-        } else {
-            body.classList.add('sidebar-open');
-            if (window.storageManager) {
-                window.storageManager.saveSetting('sidebarOpen', true);
-            }
-        }
-        
-        console.log('🔧 Sidebar toggled:', !isOpen);
+        return window.actionManager.toggleSidebar();
     }
 
     closeSidebar() {
@@ -467,9 +448,7 @@ class EventManager {
     // ========== CONVERSATION MANAGEMENT ==========
     
     async setConversation(conversationId) {
-        if (typeof set_conversation === 'function') {
-            await set_conversation(conversationId);
-        }
+        return await window.actionManager.setConversation(conversationId);
     }
 
     showConversationOptions(conversationId) {
@@ -485,9 +464,7 @@ class EventManager {
     }
 
     async deleteConversation(conversationId) {
-        if (typeof delete_conversation === 'function') {
-            await delete_conversation(conversationId);
-        }
+        return await window.actionManager.deleteConversation(conversationId);
     }
 
     copyMessageContent(messageContent) {
