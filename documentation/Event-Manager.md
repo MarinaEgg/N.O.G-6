@@ -13,7 +13,8 @@ window.getDynamicWarning() - Messages d'alerte
 Principe : Fonctions pures, réutilisables partout
 
 💾 storage.js - Gestionnaire de Stockage
-Rôle : Centralise TOUT le stockage (localStorage + gestion des données)
+Rôle : Centralise TOUT le stockage (localStorage + gestion des données)<img width="480" height="528" alt="Voici un récapitulatif de l'architecture que nous avons mise en place _ - visual selection (2)" src="https://github.com/user-attachments/assets/21c95f1d-44e3-477e-bd16-cbbef5bfbf02" />
+
 
 window.storageManager.addConversation() - Créer conversations
 window.storageManager.getConversation() - Récupérer conversations
@@ -60,5 +61,13 @@ Principe : Capture les événements, délègue les actions
 4. action-manager.js appelle window.conversationManager.sendMessage()
    ↓
 5. conversation-manager.js fait le streaming + utilise storageManager
-   ↓
+
+
+<img width="480" height="528" alt="Voici un récapitulatif de l'architecture que nous avons mise en place _ - visual selection (2)" src="https://github.com/user-attachments/assets/6ee25fb8-ab89-4d11-8808-dc5bd2b6577a" />
+
+   ↓<img width="924" height="1368" alt="Voici un récapitulatif de l'architecture que nous avons mise en place _ - visual selection (1)" src="https://github.com/user-attachments/assets/3c1b03a8-7e0b-4ace-aa38-5eb7380b18b0" />
+<img width="924" height="798" alt="Voici un récapitulatif de l'architecture que nous avons mise en place _ - visual selection" src="https://github.com/user-attachments/assets/b45c2219-e977-4567-bed5-7ffc005ae52b" />
+
+   
+
 6. storage.js sauvegarde en localStorage
