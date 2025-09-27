@@ -211,7 +211,7 @@ const ask_gpt = async (message) => {
     message_input.innerHTML = ``;
     message_input.innerText = ``;
 
-    add_conversation(window.conversation_id, message.substr(0, 20));
+    await window.storageManager.addConversation(window.conversation_id, message.substr(0, 20));
     window.scrollTo(0, 0);
     window.controller = new AbortController();
 
@@ -272,7 +272,7 @@ const ask_gpt = async (message) => {
         meta: {
           id: window.token,
           content: {
-            conversation: await get_conversation(window.conversation_id),
+            conversation: await window.storageManager.getConversation(window.conversation_id),
             content_type: "text",
             parts: [
               {
@@ -371,13 +371,13 @@ const ask_gpt = async (message) => {
 
     let responseContent = [];
 
-    add_message(window.conversation_id, "user", user_image, message);
+    await window.storageManager.addMessage(window.conversation_id, "user", user_image, message);
   } catch (e) {
     document.getElementById(`shape_assistant_${window.token}`).src =
       "/assets/img/gpt_egg.png";
     document.getElementById(`assistant_${window.token}`).style.opacity = "0";
 
-    add_message(window.conversation_id, "user", user_image, message);
+    await window.storageManager.addMessage(window.conversation_id, "user", user_image, message);
 
     message_box.scrollTop = message_box.scrollHeight;
     await remove_cancel_button();
@@ -393,7 +393,7 @@ const ask_gpt = async (message) => {
 
       document.getElementById(`imanage_${window.token}`).innerHTML =
         error_message;
-      add_message(
+      await window.storageManager.addMessage(
         window.conversation_id,
         "assistant",
         gpt_image,
@@ -404,7 +404,7 @@ const ask_gpt = async (message) => {
         `imanage_${window.token}`
       ).innerHTML += ` [aborted]`;
 
-      add_message(
+      await window.storageManager.addMessage(
         window.conversation_id,
         "assistant",
         gpt_image,
@@ -455,11 +455,11 @@ async function writeNoRAGConversation(text, message, links) {
   await load_conversations(20, 0);
   window.scrollTo(0, 0);
 
-  add_message(window.conversation_id, "user", user_image, message);
+  await window.storageManager.addMessage(window.conversation_id, "user", user_image, message);
   if (links.length === 0) {
-    add_message(window.conversation_id, "assistant", gpt_image, text);
+    await window.storageManager.addMessage(window.conversation_id, "assistant", gpt_image, text);
   } else {
-    add_message(window.conversation_id, "assistant", imanage_image, text);
+    await window.storageManager.addMessage(window.conversation_id, "assistant", imanage_image, text);
   }
 }
 
@@ -555,7 +555,7 @@ async function writeRAGConversation(links, text, language) {
     titles: titles,
   };
 
-  add_message(
+  await window.storageManager.addMessage(
     window.conversation_id,
     "video_assistant",
     video_image,
@@ -647,7 +647,7 @@ const set_conversation = async (conversation_id) => {
   window.conversation_id = conversation_id;
 
   await clear_conversation();
-  await load_conversation(conversation_id);
+  await window.storageManager.loadConversation(conversation_id);
   await load_conversations(20, 0, true);
 };
 
@@ -680,103 +680,9 @@ const new_conversation = async () => {
   await load_conversations(20, 0, true);
 };
 
-const load_conversation = async (conversation_id) => {
-  let conversation = {
-    items: await window.storageManager.getConversation(conversation_id)
-  };
 
-  conversation?.items.forEach((item) => {
-    const messageAlignmentClass =
-      item.role === "user" ? "message-user" : "message-assistant";
-    const img = item.image;
-    if (item.role === "user" || item.role === "assistant") {
-      message_box.innerHTML += `
-          <div class="message ${messageAlignmentClass}">
-            ${img}
-            <div class="content">
-              ${item.role === "assistant"
-          ? `<div class="assistant-content" style="word-wrap: break-word; max-width: 100%; overflow-x: auto;">${markdown.render(
-            item.content
-          )}</div>`
-          : item.content
-        }
-              ${item.role === "assistant" ? actionsButtons : ""}
-            </div>
-          </div>
-        `;
-    } else if (item.role === "video_assistant") {
-      const links = item.content.links;
-      // CORRECTION: Utiliser window.getYouTubeID depuis utils.js
-      const video_ids = links.map((link) => window.getYouTubeID(link));
-      const titles = item.content.titles;
-      const language = item.content.language;
 
-      // Créer le conteneur pour les bulles vidéo lors du rechargement
-      let videoSourcesHTML = '<div class="video-sources-container">';
-      for (let i = 0; i < Math.min(links.length, 3); i++) {
-        const bubbleId = `bubble-${conversation_id}-${i}`;
-        videoSourcesHTML += `
-          <div class="video-source-bubble" data-index="${i}" id="${bubbleId}">
-            <div class="video-source-title">
-              <svg class="youtube-icon" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-              </svg>
-              <span>${titles[i]}</span>
-            </div>
-            <p class="video-source-url">${links[i]}</p>
-          </div>
-        `;
-      }
-      videoSourcesHTML += '</div>';
 
-      message_box.innerHTML += `
-        <div class="message message-assistant">
-          ${img}
-          <div class="content">
-            ${videoSourcesHTML}
-          </div>
-        </div>`;
-
-      // Ajouter les événements de clic après l'ajout au DOM
-      setTimeout(() => {
-        for (let i = 0; i < Math.min(links.length, 3); i++) {
-          const bubbleId = `bubble-${conversation_id}-${i}`;
-          const bubbleElement = document.getElementById(bubbleId);
-          if (bubbleElement) {
-            bubbleElement.addEventListener('click', function (e) {
-              e.preventDefault();
-              e.stopPropagation();
-              console.log('Loaded bubble clicked, opening links with:', video_ids.join(get_sep), titles.join(get_sep));
-              openLinks(video_ids.join(get_sep), titles.join(get_sep));
-            });
-          }
-        }
-      }, 100);
-    }
-  });
-
-  document.querySelectorAll(`code`).forEach((el) => {
-    hljs.highlightElement(el);
-  });
-
-  message_box.scrollTo({ top: message_box.scrollHeight, behavior: "smooth" });
-
-  setTimeout(() => {
-    message_box.scrollTop = message_box.scrollHeight;
-  }, 500);
-};
-
-const get_conversation = async (conversation_id) => {
-  return await window.storageManager.getConversation(conversation_id);
-};
-
-const add_conversation = async (conversation_id, title) => {
-  await window.storageManager.addConversation(conversation_id, title);
-};
-
-const add_message = async (conversation_id, role, image, content) => {
-  await window.storageManager.addMessage(conversation_id, role, image, content);
-};
 
 const load_conversations = async (limit, offset, loader) => {
   let conversations = await window.storageManager.getAllConversations();
@@ -920,7 +826,7 @@ window.onload = async () => {
 
   if (!window.location.href.endsWith(`#`)) {
     if (/\/chat\/.+/.test(window.location.href)) {
-      await load_conversation(window.conversation_id);
+      await window.storageManager.loadConversation(window.conversation_id);
     }
   }
 
