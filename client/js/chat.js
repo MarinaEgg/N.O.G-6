@@ -57,10 +57,7 @@ window.workspaceUtils = {
 };
 
 // Initialize workspace integration when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-  console.log('✅ EventManager taking control of events');
-  initWorkspaceIntegration(); // Garder seulement la logique métier
-});
+// SUPPRIMÉ: DOMContentLoaded maintenant géré par main.js
 
 // ========== END SIDEBAR TOGGLE ==========
 
@@ -674,14 +671,15 @@ console.log('🔧 Patch chat.js pour workspace appliqué');
 window.handle_ask = handle_ask;
 window.set_conversation = set_conversation;
 window.new_conversation = new_conversation;
-console.log('✅ Essential chat functions exported');
 
-// ========== 4. INITIALISATIONS EN DERNIER ==========
-window.onload = async () => {
+// Fonction d'initialisation pour main.js
+window.initializeChat = async () => {
+  console.log('🚀 Initializing chat...');
+  
   load_settings_localstorage();
 
   const allConversations = await window.storageManager.getAllConversations();
-  conversations = allConversations.length;
+  const conversations = allConversations.length;
 
   if (conversations == 0) window.storageManager.clearAllConversations();
 
@@ -696,7 +694,17 @@ window.onload = async () => {
   }
 
   register_settings_localstorage();
+  
+  // Initialiser l'intégration workspace si nécessaire
+  initWorkspaceIntegration();
+  
+  console.log('✅ Chat initialized');
 };
+
+console.log('✅ Essential chat functions exported');
+
+// ========== 4. INITIALISATIONS EN DERNIER ==========
+// SUPPRIMÉ: window.onload maintenant géré par main.js
 
 
 
@@ -748,12 +756,7 @@ const setTheme = function () {
 
 
 
-document.onload = setTheme();
-
-// Initialize highlight.js copy button plugin
-hljs.addPlugin(new CopyButtonPlugin());
-
-// Initialize library side nav with empty content
-if (document.getElementsByClassName("library-side-nav-content")[0]) {
-  document.getElementsByClassName("library-side-nav-content")[0].innerHTML = '';
-}
+// SUPPRIMÉ: Initialisations maintenant gérées par main.js
+// - document.onload = setTheme();
+// - hljs.addPlugin(new CopyButtonPlugin());
+// - library-side-nav-content initialization
