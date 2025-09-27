@@ -57,13 +57,10 @@
   <link rel="stylesheet" href="/assets/css/style.css" />
   <link rel="stylesheet" href="/assets/css/glass-buttons.css" />
   <link rel="stylesheet" href="/assets/css/briefcase-icon.css" />
-  <script src="/assets/js/highlight.min.js"></script>
-  <script src="/assets/js/highlightjs-copy.min.js"></script>
   <script>
     window.conversation_id = `{{chat_id}}`;
   </script>
   <title>nOg</title>
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 
 <body>
@@ -299,33 +296,24 @@
     </div>
   </div>
 
-  <!-- Scripts dans le BON ORDRE -->
-  <script src="/assets/js/icons.js"></script>
-  <script src="/assets/js/utils.js"></script> <!-- DOIT ÊTRE EN PREMIER -->
-  <script src="/assets/js/storage.js"></script> <!-- AJOUTER CETTE LIGNE -->
-  <script src="/assets/js/conversation-manager.js"></script>
-  <script src="/assets/js/action-manager.js"></script>
-  <script src="/assets/js/event-manager.js"></script> <!-- ❌ AJOUTER ! -->
-  <script src="/assets/js/chat-input-manager.js"></script>
-  <script src="/assets/js/chat.js"></script> <!-- APRÈS utils.js et storage.js -->
+  <!-- Librairies externes d'abord -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="/js/highlightjs-copy.min.js"></script>
+  <script src="/js/highlight.min.js"></script>
 
-  <!-- Scripts du système de cartes (ordre important) -->
-  <script src="/assets/js/card-models.js"></script>
-  <script src="/assets/js/card-system.js"></script>
-  <script src="/assets/js/text-card.js"></script>
-  <script src="/assets/js/file-card.js"></script>
-  <script src="/assets/js/floating-card-menu.js"></script>
-  <script src="/assets/js/workspace.js"></script>
+  <!-- Nos modules dans l'ordre de dépendance -->
+  <script src="/js/icons.js"></script>
+  <script src="/js/utils.js"></script>           <!-- 1. Fonctions pures -->
+  <script src="/js/storage.js"></script>         <!-- 2. Stockage -->
+  <script src="/js/action-manager.js"></script>  <!-- 3. Actions -->
+  <script src="/js/conversation-manager.js"></script> <!-- 4. Chat logic -->
+  <script src="/js/event-manager.js"></script>   <!-- 5. Event handling -->
 
-  <!-- Script Modern Chat Bar -->
-  <script src="/assets/js/modern-chat-bar.js"></script>
+  <!-- Page-specific scripts -->
+  <script src="/js/chat.js"></script>            <!-- Pour index.html -->
 
-  <!-- Initialisation -->
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      window.modernChatBar = new ModernChatBar();
-    });
-  </script>
+  <!-- ORCHESTRATEUR EN DERNIER -->
+  <script src="/js/main.js"></script>            <!-- 6. Point d'entrée -->
 
 </body>
 
