@@ -665,6 +665,54 @@ function updateNavigationState() {
 
 
 
+// ========== FIX HANDLERS CHAT - À AJOUTER DANS chat.js ==========
+// Handlers pour les boutons de la barre de chat
+function handleFileUpload() {
+  console.log('File upload clicked');
+  // TODO: Implémenter upload de fichier
+  alert('Fonction upload de fichier en cours de développement');
+}
+
+function handleScreenshot() {
+  console.log('Screenshot clicked');
+  // TODO: Implémenter screenshot
+  alert('Fonction screenshot en cours de développement');
+}
+
+function handleFolderSelection() {
+  console.log('Folder selection clicked');
+  // TODO: Implémenter sélection dossier iManage
+  alert('Fonction dossier iManage en cours de développement');
+}
+
+function handleDeepSearch() {
+  console.log('Deep search clicked');
+  // TODO: Implémenter recherche approfondie
+  alert('Fonction recherche approfondie en cours de développement');
+}
+
+function handleAddConnectors() {
+  console.log('Add connectors clicked');
+  // TODO: Implémenter ajout connecteurs
+  alert('Fonction ajout connecteurs en cours de développement');
+}
+
+function handleIManageConnection() {
+  console.log('iManage connection clicked');
+  // TODO: Implémenter connexion iManage
+  alert('Fonction connexion iManage en cours de développement');
+}
+
+// Export global des handlers
+window.handleFileUpload = handleFileUpload;
+window.handleScreenshot = handleScreenshot;
+window.handleFolderSelection = handleFolderSelection;
+window.handleDeepSearch = handleDeepSearch;
+window.handleAddConnectors = handleAddConnectors;
+window.handleIManageConnection = handleIManageConnection;
+
+console.log('✅ Chat handlers exported to global scope');
+
 console.log('🔧 Patch chat.js pour workspace appliqué');
 
 // ========== EXPORTS ESSENTIELS POUR COMPATIBILITÉ ==========
