@@ -174,6 +174,9 @@ class EventManager {
         // Theme management
         this.setupThemeEvents();
 
+        // AJOUTER CETTE LIGNE :
+        this.setupModernChatButtons(); // ← NOUVEAU
+
         this.chatInitialized = true;
         console.log('✅ Chat events initialized');
     }
@@ -364,6 +367,159 @@ class EventManager {
                 this.applyTheme(input.id);
             }, `theme-${index}`);
         });
+    }
+
+    // ========== CONFIGURATION MODERN CHAT BUTTONS ==========
+    setupModernChatButtons() {
+        console.log('🔧 Setting up modern chat buttons...');
+
+        // Bouton Plus (+) - Toggle menu
+        const plusButton = document.getElementById('plusButton');
+        if (plusButton) {
+            this.addSafeListener(plusButton, 'click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                this.toggleDropdownMenu('plusMenu');
+            }, 'plus-button');
+        }
+
+        // Bouton Connecteur - Toggle menu
+        const connectorButton = document.getElementById('connectorButton');
+        if (connectorButton) {
+            this.addSafeListener(connectorButton, 'click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                this.toggleDropdownMenu('connectorMenu');
+            }, 'connector-button');
+        }
+
+        // Fermer menus en cliquant ailleurs
+        this.addSafeListener(document, 'click', (e) => {
+            if (!e.target.closest('.dropdown-menu') && 
+                !e.target.closest('#plusButton') && 
+                !e.target.closest('#connectorButton')) {
+                this.closeAllDropdownMenus();
+            }
+        }, 'close-dropdown-menus');
+
+        // Délégation pour les items des menus dropdown
+        this.setupDropdownMenuItems();
+
+        console.log('✅ Modern chat buttons configured');
+    }
+
+    // ========== GESTION MENUS DROPDOWN ==========
+    toggleDropdownMenu(menuId) {
+        const menu = document.getElementById(menuId);
+        if (!menu) return;
+
+        const isVisible = menu.classList.contains('show');
+        
+        // Fermer tous les autres menus d'abord
+        this.closeAllDropdownMenus();
+        
+        if (!isVisible) {
+            menu.classList.add('show');
+            this.positionDropdownMenu(menu);
+        }
+    }
+
+    closeAllDropdownMenus() {
+        const menus = document.querySelectorAll('.dropdown-menu');
+        menus.forEach(menu => menu.classList.remove('show'));
+    }
+
+    positionDropdownMenu(menu) {
+        // Positionnement automatique du menu
+        const rect = menu.getBoundingClientRect();
+        const viewportHeight = window.innerHeight;
+        
+        if (rect.bottom > viewportHeight) {
+            menu.style.bottom = '100%';
+            menu.style.top = 'auto';
+        } else {
+            menu.style.top = '100%';
+            menu.style.bottom = 'auto';
+        }
+    }
+
+    // ========== CONFIGURATION ITEMS DROPDOWN ==========
+    setupDropdownMenuItems() {
+        // Menu Plus (+) - délégation sur le container
+        const plusMenu = document.getElementById('plusMenu');
+        if (plusMenu) {
+            this.addDelegatedListener(plusMenu, 'click', '.dropdown-item', (e, target) => {
+                e.preventDefault();
+                const action = this.getDropdownItemAction(target);
+                this.handleDropdownAction(action);
+                this.closeAllDropdownMenus();
+            }, 'plus-menu-items');
+        }
+
+        // Menu Connecteur - délégation sur le container
+        const connectorMenu = document.getElementById('connectorMenu');
+        if (connectorMenu) {
+            this.addDelegatedListener(connectorMenu, 'click', '.connector-item', (e, target) => {
+                e.preventDefault();
+                const action = this.getConnectorItemAction(target);
+                this.handleDropdownAction(action);
+                this.closeAllDropdownMenus();
+            }, 'connector-menu-items');
+        }
+    }
+
+    getDropdownItemAction(item) {
+        // Déterminer l'action basée sur le contenu ou les classes
+        if (item.textContent.includes('Téléverser')) return 'fileUpload';
+        if (item.textContent.includes('capture')) return 'screenshot';
+        if (item.textContent.includes('dossier')) return 'folderSelection';
+        return 'unknown';
+    }
+
+    getConnectorItemAction(item) {
+        // Déterminer l'action basée sur le contenu ou les classes
+        if (item.textContent.includes('Recherche approfondie')) return 'deepSearch';
+        if (item.textContent.includes('Ajouter des connecteurs')) return 'addConnectors';
+        if (item.textContent.includes('iManage')) return 'iManageConnection';
+        return 'unknown';
+    }
+
+    handleDropdownAction(action) {
+        // Router vers les handlers appropriés dans chat.js
+        switch (action) {
+            case 'fileUpload':
+                if (typeof window.handleFileUpload === 'function') {
+                    window.handleFileUpload();
+                }
+                break;
+            case 'screenshot':
+                if (typeof window.handleScreenshot === 'function') {
+                    window.handleScreenshot();
+                }
+                break;
+            case 'folderSelection':
+                if (typeof window.handleFolderSelection === 'function') {
+                    window.handleFolderSelection();
+                }
+                break;
+            case 'deepSearch':
+                if (typeof window.handleDeepSearch === 'function') {
+                    window.handleDeepSearch();
+                }
+                break;
+            case 'addConnectors':
+                if (typeof window.handleAddConnectors === 'function') {
+                    window.handleAddConnectors();
+                }
+                break;
+            case 'iManageConnection':
+                if (typeof window.handleIManageConnection === 'function') {
+                    window.handleIManageConnection();
+                }
+                break;
+            default:
+                console.warn('Unknown dropdown action:', action);
+        }
     }
 
     // ========== MÉTHODES DE GESTION ==========
