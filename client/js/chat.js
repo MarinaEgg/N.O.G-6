@@ -1,6 +1,31 @@
 // ========== CHAT.JS - VERSION NETTOYÉE APRÈS REFACTORISATION ==========
 // DEPENDENCIES: utils.js must be loaded before this file
 
+// ========== EXPORT FONCTIONS POUR EVENT-MANAGER ==========
+// Ces fonctions seront appelées par event-manager.js
+
+// Exporter les handlers métier
+window.toggleSidebar = toggleSidebar;
+window.handle_ask = handle_ask;
+window.set_conversation = set_conversation;
+window.show_option = show_option;
+window.hide_option = hide_option;
+window.delete_conversation = delete_conversation;
+window.new_conversation = new_conversation;
+window.delete_conversations = delete_conversations;
+
+// Fonctions de navigation (pour event-manager)
+window.switchToDiscussions = switchToDiscussions;
+window.switchToWorkspace = switchToWorkspace;
+window.setActiveNavItem = setActiveNavItem;
+
+// Fonctions settings
+window.storeTheme = storeTheme;
+window.load_settings_localstorage = load_settings_localstorage;
+window.register_settings_localstorage = register_settings_localstorage;
+
+console.log('✅ Chat functions exported for event-manager');
+
 // ========== PATCH CHAT.JS POUR INTÉGRATION WORKSPACE ==========
 // Fonction pour détecter si on est sur workspace
 const isWorkspacePage = () => {
@@ -26,44 +51,9 @@ function toggleSidebar() {
   }
 }
 
-function initSidebar() {
-  // Bouton hamburger externe (quand sidebar fermée)
-  const sidebarToggle = document.getElementById('sidebarToggle');
-  if (sidebarToggle) {
-    sidebarToggle.addEventListener('click', toggleSidebar);
-  }
 
-  // Bouton hamburger interne (dans la sidebar) - SOLUTION ROBUSTE
-  const attachInternalHamburger = () => {
-    const sidebarToggleInternal = document.querySelector('.sidebar-header .hamburger-icon');
-    if (sidebarToggleInternal) {
-      // Supprimer l'ancien event listener s'il existe
-      sidebarToggleInternal.removeEventListener('click', toggleSidebar);
-      // Ajouter le nouveau
-      sidebarToggleInternal.addEventListener('click', toggleSidebar);
-      console.log('✅ Internal hamburger connected');
-    } else {
-      console.warn('❌ Internal hamburger not found, retrying...');
-      setTimeout(attachInternalHamburger, 100);
-    }
-  };
 
-  // Attacher après un petit délai pour s'assurer que le DOM est prêt
-  setTimeout(attachInternalHamburger, 50);
 
-  // Restaurer l'état depuis localStorage
-  const savedState = window.storageManager.loadSetting('sidebarOpen', false);
-  if (savedState === true) {
-    document.body.classList.add('sidebar-open');
-  }
-}
-
-// Fermer la sidebar en cliquant sur l'overlay (mobile)
-function handleOverlayClick(e) {
-  if (window.innerWidth <= 990 && e.target === document.body.querySelector('::before')) {
-    document.body.classList.remove('sidebar-open');
-  }
-}
 
 // NOUVELLE FONCTION : Initialiser l'intégration workspace
 const initWorkspaceIntegration = () => {
@@ -89,11 +79,10 @@ window.workspaceUtils = {
   isCardChatActive,
 };
 
-// Initialize sidebar when DOM is loaded
+// Initialize workspace integration when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-  initSidebar();
-  initWorkspaceIntegration();
-  document.body.addEventListener('click', handleOverlayClick);
+  console.log('✅ EventManager taking control of events');
+  initWorkspaceIntegration(); // Garder seulement la logique métier
 });
 
 // ========== END SIDEBAR TOGGLE ==========
@@ -146,9 +135,7 @@ if (document.getElementsByClassName("library-side-nav-content")[0]) {
 
 const class_last_message_assistant = "last-message-assistant";
 
-message_input.addEventListener("blur", () => {
-  window.scrollTo(0, 0);
-});
+
 
 const delete_conversations = async () => {
   window.storageManager.clearAllConversations();
@@ -859,35 +846,11 @@ const load_conversations = async (limit, offset, loader) => {
   });
 };
 
-document.getElementById(`cancelButton`)?.addEventListener(`click`, async () => {
-  if (window.controller) {
-    window.controller.abort();
-  }
-});
+
 
 // ========== GESTION NOUVELLE SIDEBAR ========== 
 
-// Gestion du menu utilisateur
-document.addEventListener('DOMContentLoaded', () => {
-  const userProfile = document.getElementById('userProfile');
-  const userMenu = document.getElementById('userMenu');
 
-  if (userProfile && userMenu) {
-    userProfile.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const isShowing = userMenu.classList.toggle('show');
-      userProfile.classList.toggle('active', isShowing);
-    });
-
-    // Fermer le menu en cliquant ailleurs
-    document.addEventListener('click', (e) => {
-      if (!userProfile.contains(e.target) && !userMenu.contains(e.target)) {
-        userMenu.classList.remove('show');
-        userProfile.classList.remove('active');
-      }
-    });
-  }
-});
 
 // Navigation entre sections
 function switchToDiscussions() {
@@ -944,15 +907,7 @@ function updateNavigationState() {
   setActiveNavItem('discussions');
 }
 
-// Initialiser l'état de navigation au chargement
-document.addEventListener('DOMContentLoaded', () => {
-  updateNavigationState();
 
-  // Si on est sur la page de chat, initialiser l'intégration workspace
-  if (window.location.pathname.includes('/chat')) {
-    initWorkspaceIntegration();
-  }
-});
 
 console.log('🔧 Patch chat.js pour workspace appliqué');
 
@@ -974,59 +929,14 @@ window.onload = async () => {
     }
   }
 
-  // Événement d'envoi via le bouton
-  if (send_button) {
-    send_button.addEventListener(`click`, async () => {
-      if (prompt_lock) return;
-      await handle_ask();
-    });
-  }
-
   register_settings_localstorage();
-
-  // Add Enter key handler for message input
-  if (message_input) {
-    message_input.addEventListener(`keydown`, async (event) => {
-      if (event.key === `Enter` && !event.shiftKey) {
-        event.preventDefault();
-        if (prompt_lock) return;
-        await handle_ask();
-      }
-    });
-  }
 };
 
-document.querySelector(".mobile-sidebar")?.addEventListener("click", (event) => {
-  const sidebar = document.querySelector(".conversations");
 
-  if (sidebar.classList.contains("shown")) {
-    sidebar.classList.remove("shown");
-    event.target.classList.remove("rotated");
-  } else {
-    sidebar.classList.add("shown");
-    event.target.classList.add("rotated");
-  }
-
-  window.scrollTo(0, 0);
-});
 
 const register_settings_localstorage = async () => {
-  settings_ids = ["model"];
-  settings_elements = settings_ids.map((id) => document.getElementById(id));
-  settings_elements.map((element) =>
-    element.addEventListener(`change`, async (event) => {
-      switch (event.target.type) {
-        case "checkbox":
-          window.storageManager.saveSetting(event.target.id, event.target.checked);
-          break;
-        case "select-one":
-          window.storageManager.saveSetting(event.target.id, event.target.selectedIndex);
-          break;
-        default:
-          console.warn("Unresolved element type");
-      }
-    })
-  );
+  // Event-manager prend en charge les événements settings
+  console.log('Settings events handled by event-manager');
 };
 
 const load_settings_localstorage = async () => {
@@ -1070,13 +980,7 @@ const setTheme = function () {
   }
 };
 
-colorThemes.forEach((themeOption) => {
-  themeOption.addEventListener("click", () => {
-    storeTheme(themeOption.id);
-    // fallback for no :has() support
-    document.documentElement.className = themeOption.id;
-  });
-});
+
 
 document.onload = setTheme();
 
