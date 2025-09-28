@@ -373,6 +373,25 @@ class EventManager {
     setupModernChatButtons() {
         console.log('🔧 Setting up modern chat buttons...');
 
+        // ATTENDRE QUE MODERNCHATBAR SOIT PRÊT
+        const waitForModernChatBar = () => {
+            if (window.modernChatBar && window.modernChatBar.isInitialized) {
+                console.log('✅ ModernChatBar detected and ready');
+                this.configureModernChatButtons();
+            } else if (window.modernChatBar) {
+                console.log('⏳ ModernChatBar found but not ready, waiting...');
+                setTimeout(waitForModernChatBar, 50);
+            } else {
+                console.log('⏳ ModernChatBar not found, waiting...');
+                setTimeout(waitForModernChatBar, 100);
+            }
+        };
+
+        waitForModernChatBar();
+    }
+
+    // NOUVELLE MÉTHODE SÉPARÉE
+    configureModernChatButtons() {
         // Setup des boutons Plus (+) et Connecteur
         const plusButton = document.getElementById('plusButton');
         const connectorButton = document.getElementById('connectorButton');
