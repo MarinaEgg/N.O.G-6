@@ -489,3 +489,6 @@ function handleIManageConnection() {
 if (typeof window !== 'undefined') {
    window.ModernChatBar = ModernChatBar;
 }
+
+// Initialisation automatique
+window.modernChatBar = new ModernChatBar();
