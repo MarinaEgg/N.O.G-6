@@ -8,12 +8,12 @@ class EventManager {
         this.delegators = new Map(); // Event delegation handlers
         this.initialized = false;
         this.currentPage = this.detectCurrentPage();
-        
+
         // Flags pour éviter double initialization
         this.sidebarInitialized = false;
         this.chatInitialized = false;
         this.workspaceInitialized = false;
-        
+
         console.log('🎯 EventManager created for page:', this.currentPage);
     }
 
@@ -34,23 +34,23 @@ class EventManager {
         }
 
         console.log('🚀 Initializing EventManager for', this.currentPage);
-        
+
         // Nettoyage préventif
         this.cleanup();
-        
+
         // Setup base selon la page
         this.setupGlobalEventDelegation();
-        
+
         // Initialisation conditionnelle par page
         if (this.currentPage === 'chat') {
             this.initChatEvents();
         } else if (this.currentPage === 'workspace') {
             this.initWorkspaceEvents();
         }
-        
+
         // Events communs à toutes les pages
         this.initCommonEvents();
-        
+
         this.initialized = true;
         console.log('✅ EventManager initialized with', this.listeners.size, 'listeners');
     }
@@ -89,8 +89,8 @@ class EventManager {
 
         // Overlay mobile - délégation sécurisée
         this.addSafeListener(document.body, 'click', (e) => {
-            if (window.innerWidth <= 990 && 
-                e.target.matches('body') && 
+            if (window.innerWidth <= 990 &&
+                e.target.matches('body') &&
                 document.body.classList.contains('sidebar-open')) {
                 this.closeSidebar();
             }
@@ -124,7 +124,7 @@ class EventManager {
         }
 
         console.log('🔧 Initializing chat events...');
-        
+
         // Sidebar d'abord
         this.initSidebarEvents();
 
@@ -189,7 +189,7 @@ class EventManager {
         }
 
         console.log('🔧 Initializing workspace events...');
-        
+
         // Sidebar pour workspace aussi
         this.initSidebarEvents();
 
@@ -287,10 +287,10 @@ class EventManager {
 
     // ========== CONFIGURATION CONVERSATIONS ==========
     setupConversationEvents() {
-        const conversationsContainer = document.getElementById('conversationsList') || 
-                                     document.querySelector('.conversations-list') || 
-                                     document.querySelector('.top');
-        
+        const conversationsContainer = document.getElementById('conversationsList') ||
+            document.querySelector('.conversations-list') ||
+            document.querySelector('.top');
+
         if (!conversationsContainer) return;
 
         // Délégation pour toutes les actions de conversation
@@ -373,98 +373,106 @@ class EventManager {
     setupModernChatButtons() {
         console.log('🔧 Setting up modern chat buttons...');
 
-        // Bouton Plus (+) - Toggle menu
+        // Setup des boutons Plus (+) et Connecteur
         const plusButton = document.getElementById('plusButton');
-        if (plusButton) {
-            this.addSafeListener(plusButton, 'click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                this.toggleDropdownMenu('plusMenu');
-            }, 'plus-button');
-        }
-
-        // Bouton Connecteur - Toggle menu
         const connectorButton = document.getElementById('connectorButton');
-        if (connectorButton) {
-            this.addSafeListener(connectorButton, 'click', (e) => {
+        const plusMenu = document.getElementById('plusMenu');
+        const connectorMenu = document.getElementById('connectorMenu');
+
+        if (plusButton && connectorButton && plusMenu && connectorMenu) {
+            console.log('✅ Modern chat elements found');
+
+            // Bouton Plus (+) - toggle menu
+            plusButton.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                this.toggleDropdownMenu('connectorMenu');
-            }, 'connector-button');
-        }
+                console.log('🎯 Plus button clicked');
 
-        // Fermer menus en cliquant ailleurs
-        this.addSafeListener(document, 'click', (e) => {
-            if (!e.target.closest('.dropdown-menu') && 
-                !e.target.closest('#plusButton') && 
-                !e.target.closest('#connectorButton')) {
-                this.closeAllDropdownMenus();
-            }
-        }, 'close-dropdown-menus');
+                // Fermer le menu connecteur
+                connectorMenu.classList.remove('show');
+                connectorButton.classList.remove('active');
 
-        // Délégation pour les items des menus dropdown
-        this.setupDropdownMenuItems();
+                // Toggle le menu plus
+                const isShowing = plusMenu.classList.toggle('show');
+                plusButton.classList.toggle('active');
 
-        console.log('✅ Modern chat buttons configured');
-    }
+                if (isShowing) {
+                    this.positionDropdownMenu(plusMenu, plusButton);
+                }
+            });
 
-    // ========== GESTION MENUS DROPDOWN ==========
-    toggleDropdownMenu(menuId) {
-        const menu = document.getElementById(menuId);
-        if (!menu) return;
+            // Bouton Connecteur - toggle menu
+            connectorButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('🎯 Connector button clicked');
 
-        const isVisible = menu.classList.contains('show');
-        
-        // Fermer tous les autres menus d'abord
-        this.closeAllDropdownMenus();
-        
-        if (!isVisible) {
-            menu.classList.add('show');
-            this.positionDropdownMenu(menu);
-        }
-    }
+                // Fermer le menu plus
+                plusMenu.classList.remove('show');
+                plusButton.classList.remove('active');
 
-    closeAllDropdownMenus() {
-        const menus = document.querySelectorAll('.dropdown-menu');
-        menus.forEach(menu => menu.classList.remove('show'));
-    }
+                // Toggle le menu connecteur
+                const isShowing = connectorMenu.classList.toggle('show');
+                connectorButton.classList.toggle('active');
 
-    positionDropdownMenu(menu) {
-        // Positionnement automatique du menu
-        const rect = menu.getBoundingClientRect();
-        const viewportHeight = window.innerHeight;
-        
-        if (rect.bottom > viewportHeight) {
-            menu.style.bottom = '100%';
-            menu.style.top = 'auto';
+                if (isShowing) {
+                    this.positionDropdownMenu(connectorMenu, connectorButton);
+                }
+            });
+
+            // Click outside pour fermer les menus
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.modern-chat-bar') && !e.target.closest('.dropdown-menu')) {
+                    plusMenu.classList.remove('show');
+                    connectorMenu.classList.remove('show');
+                    plusButton.classList.remove('active');
+                    connectorButton.classList.remove('active');
+                }
+            });
+
+            console.log('✅ Modern chat button events configured');
         } else {
-            menu.style.top = '100%';
-            menu.style.bottom = 'auto';
+            console.warn('⚠️ Modern chat elements not found');
         }
+
+        // Setup de la touche Entrée pour textarea
+        this.setupChatInputEvents();
+
+        // Setup des clics sur les items des menus
+        this.setupMenuItemClicks(plusMenu, connectorMenu);
     }
 
-    // ========== CONFIGURATION ITEMS DROPDOWN ==========
-    setupDropdownMenuItems() {
-        // Menu Plus (+) - délégation sur le container
-        const plusMenu = document.getElementById('plusMenu');
+    setupMenuItemClicks(plusMenu, connectorMenu) {
         if (plusMenu) {
-            this.addDelegatedListener(plusMenu, 'click', '.dropdown-item', (e, target) => {
-                e.preventDefault();
-                const action = this.getDropdownItemAction(target);
-                this.handleDropdownAction(action);
-                this.closeAllDropdownMenus();
-            }, 'plus-menu-items');
+            plusMenu.addEventListener('click', (e) => {
+                const item = e.target.closest('.dropdown-item');
+                if (item) {
+                    e.preventDefault();
+                    const action = this.getDropdownItemAction(item);
+                    this.handleDropdownAction(action);
+                    // Fermer les menus
+                    plusMenu.classList.remove('show');
+                    connectorMenu.classList.remove('show');
+                    document.getElementById('plusButton').classList.remove('active');
+                    document.getElementById('connectorButton').classList.remove('active');
+                }
+            });
         }
 
-        // Menu Connecteur - délégation sur le container
-        const connectorMenu = document.getElementById('connectorMenu');
         if (connectorMenu) {
-            this.addDelegatedListener(connectorMenu, 'click', '.connector-item', (e, target) => {
-                e.preventDefault();
-                const action = this.getConnectorItemAction(target);
-                this.handleDropdownAction(action);
-                this.closeAllDropdownMenus();
-            }, 'connector-menu-items');
+            connectorMenu.addEventListener('click', (e) => {
+                const item = e.target.closest('.connector-item');
+                if (item) {
+                    e.preventDefault();
+                    const action = this.getConnectorItemAction(item);
+                    this.handleDropdownAction(action);
+                    // Fermer les menus
+                    plusMenu.classList.remove('show');
+                    connectorMenu.classList.remove('show');
+                    document.getElementById('plusButton').classList.remove('active');
+                    document.getElementById('connectorButton').classList.remove('active');
+                }
+            });
         }
     }
 
@@ -522,8 +530,70 @@ class EventManager {
         }
     }
 
+    setupChatInputEvents() {
+        const messageInput = document.getElementById('message-input');
+        if (messageInput) {
+            console.log('✅ Message input found - setting up Enter key');
+
+            messageInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    console.log('🎯 Enter key pressed - sending message');
+
+                    // Appeler la fonction handle_ask globale
+                    if (typeof window.handle_ask === 'function') {
+                        window.handle_ask();
+                    } else {
+                        console.error('❌ handle_ask function not available');
+                    }
+                }
+            });
+
+            console.log('✅ Chat input events configured');
+        } else {
+            console.warn('⚠️ Message input not found');
+        }
+    }
+
+    positionDropdownMenu(menu, button) {
+        if (!menu || !button) return;
+
+        const buttonRect = button.getBoundingClientRect();
+        const menuHeight = 200; // estimation
+        const viewportHeight = window.innerHeight;
+        const viewportWidth = window.innerWidth;
+
+        // Position verticale : au-dessus du bouton
+        let top = buttonRect.top - menuHeight - 10;
+
+        // Si pas de place en haut, mettre en dessous
+        if (top < 10) {
+            top = buttonRect.bottom + 10;
+        }
+
+        // Position horizontale : centré sur le bouton
+        let left = buttonRect.left + (buttonRect.width / 2) - (280 / 2);
+
+        // Vérifier les limites
+        if (left < 10) {
+            left = 10;
+        } else if (left + 280 > viewportWidth - 10) {
+            left = viewportWidth - 290;
+        }
+
+        // Appliquer les positions
+        menu.style.position = 'fixed';
+        menu.style.top = `${top}px`;
+        menu.style.left = `${left}px`;
+        menu.style.zIndex = '10000';
+    }
+
+    // ========== ANCIENNES MÉTHODES DROPDOWN SUPPRIMÉES ==========
+    // Les méthodes dropdown ont été remplacées par une implémentation directe
+    // dans setupModernChatButtons() selon les corrections du manager
+
     // ========== MÉTHODES DE GESTION ==========
-    
+
     async handleMessageSubmit() {
         return await window.actionManager.handleMessageSubmit();
     }
@@ -542,7 +612,7 @@ class EventManager {
     toggleUserMenu() {
         const userMenu = document.getElementById('userMenu');
         const userProfile = document.getElementById('userProfile');
-        
+
         if (userMenu && userProfile) {
             const isShowing = userMenu.classList.toggle('show');
             userProfile.classList.toggle('active', isShowing);
@@ -577,7 +647,7 @@ class EventManager {
         // Fermer modals ouverts
         const modals = document.querySelectorAll('.modal-overlay');
         modals.forEach(modal => modal.remove());
-        
+
         // Fermer user menu
         const userMenu = document.getElementById('userMenu');
         const userProfile = document.getElementById('userProfile');
@@ -602,7 +672,7 @@ class EventManager {
     }
 
     // ========== CONVERSATION MANAGEMENT ==========
-    
+
     async setConversation(conversationId) {
         return await window.actionManager.setConversation(conversationId);
     }
@@ -648,7 +718,7 @@ class EventManager {
 
         const wrappedHandler = this.createSafeHandler(handler, listenerId);
         element.addEventListener(event, wrappedHandler);
-        
+
         this.listeners.set(listenerId, {
             element,
             event,
@@ -676,7 +746,7 @@ class EventManager {
         };
 
         container.addEventListener(event, delegatedHandler);
-        
+
         this.delegators.set(listenerId, {
             container,
             event,
@@ -731,7 +801,7 @@ class EventManager {
 
     cleanup() {
         console.log('🧹 Cleaning up existing event listeners...');
-        
+
         // Supprimer listeners trackés
         this.listeners.forEach((listener, id) => {
             try {
@@ -740,7 +810,7 @@ class EventManager {
                 console.warn(`Failed to remove listener ${id}:`, e);
             }
         });
-        
+
         // Supprimer delegators trackés
         this.delegators.forEach((delegator, id) => {
             try {
@@ -752,7 +822,7 @@ class EventManager {
 
         this.listeners.clear();
         this.delegators.clear();
-        
+
         // Reset flags
         this.sidebarInitialized = false;
         this.chatInitialized = false;
@@ -761,7 +831,7 @@ class EventManager {
     }
 
     // ========== DEBUGGING ==========
-    
+
     getStats() {
         return {
             page: this.currentPage,
@@ -790,9 +860,9 @@ function initEventManager() {
         console.warn('⚠️ EventManager already exists, cleaning up...');
         eventManager.cleanup();
     }
-    
+
     eventManager = new EventManager();
-    
+
     // Initialiser selon l'état du DOM
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
@@ -801,14 +871,14 @@ function initEventManager() {
     } else {
         eventManager.init();
     }
-    
+
     return eventManager;
 }
 
 // Auto-initialisation
 if (typeof window !== 'undefined') {
     window.eventManager = initEventManager();
-    
+
     // Export pour debugging
     window.initEventManager = initEventManager;
 }
