@@ -67,7 +67,7 @@ class LoaderEgg extends HTMLElement {
           --colour-1: #ffffff;
           --colour-4: #f9e479;
           --glass-bg: rgba(255, 255, 255, 0.85);
-          --glass-border: rgba(123, 125, 127, 0.8); /* ← GRIS NICKEL avec opacité pour le contour */
+          --glass-border: #7b7d7f; /* ← GRIS NICKEL couleur directe comme dans le prototype */
         }
 
         :host {
@@ -210,7 +210,7 @@ class LoaderEgg extends HTMLElement {
 
   initTransformer() {
     // Adapter la classe IdleToThinkingTransform pour Shadow DOM
-    this.transformer = new IdleToThinkingTransform(this.shadowRoot);
+    this.transformer = new IdleToThinkingTransform(this.shadowRoot, this._uid); // ← PASSER uid
   }
 }
 
@@ -218,8 +218,9 @@ class LoaderEgg extends HTMLElement {
  * Classe IdleToThinkingTransform adaptée pour Shadow DOM
  */
 class IdleToThinkingTransform {
-  constructor(shadowRoot) {
+  constructor(shadowRoot, uid) { // ← AJOUTER uid
     this.shadowRoot = shadowRoot;
+    this._uid = uid; // ← STOCKER uid
     this.mainSVG = shadowRoot.querySelector('#mainSVG');
     this.container = shadowRoot.querySelector('#container');
     this.centerCore = shadowRoot.querySelector('#centerCore');
