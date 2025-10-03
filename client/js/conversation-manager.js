@@ -1,5 +1,3 @@
-// ConversationManager - Gestion des messages et loaders inline/floating
-
 class ConversationManager {
     constructor() {
         this.isStreaming = false;
@@ -62,8 +60,6 @@ class ConversationManager {
             const inlineLoader = document.querySelector('.message:last-child loader-egg');
             if (inlineLoader && typeof inlineLoader.setState === 'function') {
                 inlineLoader.setState('thinking');
-            } else {
-                console.warn('⚠️ LoaderEgg not found or not initialized');
             }
 
             await new Promise((r) => setTimeout(r, 1000));
@@ -146,9 +142,9 @@ class ConversationManager {
                         if (eventData === "[DONE]") {
                             await processPendingText();
                             
-                            // Remettre le loader inline en IDLE
+                            // ✅ PASSER EN IDLE SEULEMENT ICI
                             const inlineLoader = document.querySelector('.message:last-child loader-egg');
-                            if (inlineLoader && typeof inlineLoader.setState === 'function') {
+                            if (inlineLoader) {
                                 inlineLoader.setState('idle');
                             }
                             
@@ -157,33 +153,22 @@ class ConversationManager {
                                 await writeRAGConversation(links, text, language);
                             }
 
-                            // Déplacer le loader sous le message
-                            this.moveLoaderBelowLastMessage();
+                            // ✅ NE PLUS CRÉER DE LOADER FLOATING
                             return;
                         }
 
                         const dataObject = JSON.parse(eventData);
+                        
+                        // ✅ GARDER LE LOADER EN THINKING - NE RIEN FAIRE
                         if (links.length === 0) {
                             links = dataObject.metadata.links;
-                            // CAS GPT : garder loader en IDLE
-                            const inlineLoader = document.querySelector('.message:last-child loader-egg');
-                            if (inlineLoader && typeof inlineLoader.setState === 'function') {
-                                inlineLoader.setState('idle');
-                            } else {
-                                console.warn('⚠️ LoaderEgg not found for GPT case');
-                            }
-                        } else {
-                            // CAS iManage : garder le loader en THINKING
-                            const inlineLoader = document.querySelector('.message:last-child loader-egg');
-                            if (inlineLoader && typeof inlineLoader.setState === 'function') {
-                                inlineLoader.setState('thinking');
-                            } else {
-                                console.warn('⚠️ LoaderEgg not found for iManage case');
-                            }
-
-                            // Ajouter badge iManage
+                        }
+                        
+                        // ✅ Ajouter badge iManage si nécessaire
+                        if (links.length !== 0) {
                             this.addImanageBadge();
                         }
+                        
                         language = dataObject.metadata.language;
                         try {
                             if (dataObject.response) {
@@ -198,19 +183,10 @@ class ConversationManager {
 
             await window.storageManager.addMessage(window.conversation_id, "user", user_image, message);
         } catch (e) {
-            // En cas d'erreur, remplacer par œuf GPT statique
+            // En cas d'erreur, passer en IDLE
             const inlineLoader = document.querySelector('.message:last-child loader-egg');
-            if (inlineLoader && inlineLoader.parentNode) {
-                const staticEgg = document.createElement('img');
-                staticEgg.src = '/assets/img/gpt_egg.png';
-                staticEgg.alt = 'GPT';
-                staticEgg.className = 'avatar-egg';
-                staticEgg.style.width = '40px';
-                staticEgg.style.height = '40px';
-
-                inlineLoader.replaceWith(staticEgg);
-            } else {
-                console.warn('⚠️ LoaderEgg not found for error case');
+            if (inlineLoader) {
+                inlineLoader.setState('idle');
             }
 
             await window.storageManager.addMessage(window.conversation_id, "user", user_image, message);
@@ -255,11 +231,9 @@ class ConversationManager {
     }
 
     addImanageBadge() {
-        // Ajouter logo iManage à côté des actions
         const messageEl = document.querySelector('.message:last-child');
         if (!messageEl) return;
 
-        // Attendre que les actions soient créées
         setTimeout(() => {
             const actionsEl = messageEl.querySelector('.actions');
 
@@ -275,35 +249,6 @@ class ConversationManager {
                 actionsEl.insertBefore(badge, actionsEl.firstChild);
             }
         }, 100);
-    }
-
-    moveLoaderBelowLastMessage() {
-        // Créer un nouveau loader floating en IDLE à la fin des messages
-        const messageBox = document.getElementById('messages');
-        if (!messageBox) {
-            console.warn('⚠️ Messages container not found');
-            return;
-        }
-
-        // Supprimer tout loader floating existant
-        const existingFloatingLoader = messageBox.querySelector('loader-egg.floating');
-        if (existingFloatingLoader) {
-            existingFloatingLoader.remove();
-        }
-
-        // Créer nouveau loader floating
-        const floatingLoader = document.createElement('loader-egg');
-        floatingLoader.className = 'floating';
-        floatingLoader.setPosition('floating');
-        floatingLoader.setState('idle');
-
-        // Insérer à la fin de #messages
-        messageBox.appendChild(floatingLoader);
-
-        // Scroll automatique vers le bas
-        messageBox.scrollTop = messageBox.scrollHeight;
-        
-        console.log('✅ Loader floating créé en attente de prochaine question');
     }
 }
 
