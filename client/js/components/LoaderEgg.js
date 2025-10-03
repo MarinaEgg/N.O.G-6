@@ -78,7 +78,7 @@ class LoaderEgg extends HTMLElement {
           --colour-1: #ffffff;
           --colour-4: #f9e479;
           --glass-bg: rgba(255, 255, 255, 0.85);
-          --glass-border: rgba(0, 0, 0, 0.15);
+          --glass-border: #7b7d7f; /* ← GRIS NICKEL pour le contour des boules */
         }
 
         :host {
@@ -93,15 +93,14 @@ class LoaderEgg extends HTMLElement {
           vertical-align: middle;
         }
 
-        /* Position floating (standby sous messages) */
+        /* Position floating (à la place du prochain message bot) */
         :host(.floating) {
-          position: fixed;
-          bottom: 100px;
-          left: 50%;
-          transform: translateX(-50%);
-          width: 60px;
-          height: 60px;
-          z-index: 1000;
+          position: relative;
+          display: block;
+          width: 40px;
+          height: 40px;
+          margin: 20px 0;
+          margin-left: 0;
         }
 
         .loader-container {
@@ -122,7 +121,7 @@ class LoaderEgg extends HTMLElement {
 
         /* Traits de chaîne IDLE */
         .chain-connector {
-          stroke: #51565a;
+          stroke: #7b7d7f;
           stroke-width: 1;
           opacity: 0.4;
           transition: opacity 0.8s ease;
@@ -134,7 +133,7 @@ class LoaderEgg extends HTMLElement {
 
         /* Traits vers centre THINKING */
         .connector {
-          stroke: #51565a;
+          stroke: #7b7d7f;
           stroke-width: 1;
           opacity: 0;
           transition: opacity 0.8s ease;
@@ -144,14 +143,15 @@ class LoaderEgg extends HTMLElement {
           opacity: 0.8;
         }
 
-        /* CORRECTION : Améliorer visibilité boules grises → GRIS CARBON */
+        /* Boules grises avec effet glass et contour gris nickel */
         .outer {
           fill: var(--glass-bg);
-          stroke: #51565a; /* ← GRIS CARBON pour un rendu plus doux */
-          stroke-width: 1.5; /* ← AUGMENTÉ de 1 à 1.5 */
+          stroke: var(--glass-border);
+          stroke-width: 1;
           r: 2;
-          filter: drop-shadow(0 4px 16px rgba(81, 86, 90, 0.12))
-                  drop-shadow(0 2px 8px rgba(81, 86, 90, 0.08));
+          filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.08)) 
+                  drop-shadow(0 2px 8px rgba(0, 0, 0, 0.04)) 
+                  drop-shadow(0 1px 3px rgba(255, 255, 255, 0.6));
           transition: all 0.3s ease;
         }
 
