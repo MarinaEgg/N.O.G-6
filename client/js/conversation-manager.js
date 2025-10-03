@@ -1,4 +1,4 @@
-// FloatingLoaderManager disponible via window.floatingLoader (défini dans FloatingLoaderManager.js)
+// ConversationManager - Gestion des messages et loaders inline/floating
 
 class ConversationManager {
     constructor() {
@@ -145,17 +145,20 @@ class ConversationManager {
                         const eventData = line.slice(6).trim();
                         if (eventData === "[DONE]") {
                             await processPendingText();
+                            
+                            // Remettre le loader inline en IDLE
+                            const inlineLoader = document.querySelector('.message:last-child loader-egg');
+                            if (inlineLoader && typeof inlineLoader.setState === 'function') {
+                                inlineLoader.setState('idle');
+                            }
+                            
                             await writeNoRAGConversation(text, message, links);
                             if (links.length !== 0) {
                                 await writeRAGConversation(links, text, language);
                             }
 
-                            // Afficher loader floating standby
-                            if (window.floatingLoader) {
-                                window.floatingLoader.show();
-                            } else {
-                                console.warn('⚠️ FloatingLoaderManager not available');
-                            }
+                            // Déplacer le loader sous le message
+                            this.moveLoaderBelowLastMessage();
                             return;
                         }
 
@@ -170,19 +173,12 @@ class ConversationManager {
                                 console.warn('⚠️ LoaderEgg not found for GPT case');
                             }
                         } else {
-                            // CAS iManage : remplacer loader par œuf statique
+                            // CAS iManage : garder le loader en THINKING
                             const inlineLoader = document.querySelector('.message:last-child loader-egg');
-                            if (inlineLoader && inlineLoader.parentNode) {
-                                const staticEgg = document.createElement('img');
-                                staticEgg.src = '/assets/img/imanage_egg.png';
-                                staticEgg.alt = 'iManage';
-                                staticEgg.className = 'avatar-egg';
-                                staticEgg.style.width = '40px';
-                                staticEgg.style.height = '40px';
-
-                                inlineLoader.replaceWith(staticEgg);
+                            if (inlineLoader && typeof inlineLoader.setState === 'function') {
+                                inlineLoader.setState('thinking');
                             } else {
-                                console.warn('⚠️ LoaderEgg not found for iManage replacement');
+                                console.warn('⚠️ LoaderEgg not found for iManage case');
                             }
 
                             // Ajouter badge iManage
@@ -279,6 +275,35 @@ class ConversationManager {
                 actionsEl.insertBefore(badge, actionsEl.firstChild);
             }
         }, 100);
+    }
+
+    moveLoaderBelowLastMessage() {
+        // Créer un nouveau loader floating en IDLE à la fin des messages
+        const messageBox = document.getElementById('messages');
+        if (!messageBox) {
+            console.warn('⚠️ Messages container not found');
+            return;
+        }
+
+        // Supprimer tout loader floating existant
+        const existingFloatingLoader = messageBox.querySelector('loader-egg.floating');
+        if (existingFloatingLoader) {
+            existingFloatingLoader.remove();
+        }
+
+        // Créer nouveau loader floating
+        const floatingLoader = document.createElement('loader-egg');
+        floatingLoader.className = 'floating';
+        floatingLoader.setPosition('floating');
+        floatingLoader.setState('idle');
+
+        // Insérer à la fin de #messages
+        messageBox.appendChild(floatingLoader);
+
+        // Scroll automatique vers le bas
+        messageBox.scrollTop = messageBox.scrollHeight;
+        
+        console.log('✅ Loader floating créé en attente de prochaine question');
     }
 }
 
