@@ -44,34 +44,14 @@ class ConversationManager {
             await new Promise((r) => setTimeout(r, 500));
             window.scrollTo(0, 0);
 
-            // Créer un message loader séparé AVANT le message de contenu
-            const loaderDiv = document.createElement('div');
-            loaderDiv.className = 'message message-assistant loader-message'; // ← NOUVELLE CLASSE
-            loaderDiv.id = `loader-${window.token}`;
-            loaderDiv.innerHTML = `
-                <div class="loader-container-message">
-                    <loader-egg class="inline"></loader-egg>
-                </div>
-            `;
+            // Créer le message avec loader intégré
+            const avatarImage = '<div class="avatar-placeholder"></div>';
+            this.createLoadingMessage(avatarImage);
 
-            // Insérer le loader
-            message_box.appendChild(loaderDiv);
-
-            // Message de contenu (sans loader) - SÉPARÉ
-            message_box.innerHTML += `
-                <div class="message message-assistant" id="content-${window.token}">
-                    <div class="avatar-placeholder"></div>
-                    <div class="content" id="imanage_${window.token}" style="display: none;">
-                        <div id="cursor"></div>
-                    </div>
-                </div>
-            `;
-
-            message_box.scrollTop = message_box.scrollHeight;
             window.scrollTo(0, 0);
 
-            // Récupérer instance loader depuis le message loader séparé
-            const inlineLoader = document.querySelector(`#loader-${window.token} loader-egg`);
+            // Le loader est automatiquement en mode THINKING via createLoadingMessage()
+            const inlineLoader = document.querySelector(`#loader-egg-${window.token}`);
             if (inlineLoader && typeof inlineLoader.setState === 'function') {
                 inlineLoader.setState('thinking');
             }
@@ -158,14 +138,18 @@ class ConversationManager {
                         if (eventData === "[DONE]") {
                             await processPendingText();
 
-                            // Le loader a déjà été supprimé au premier chunk
+                            // ✅ MODIFIER : NE PAS supprimer le loader, juste le passer en IDLE
+                            const loaderEgg = document.getElementById(`loader-egg-${window.token}`);
+                            if (loaderEgg) {
+                                loaderEgg.setState('idle'); // ← Retour en mode IDLE (pas de suppression)
+                                console.log('🥚 Loader passé en mode IDLE'); // ← Debug
+                            }
 
                             await writeNoRAGConversation(text, message, links);
                             if (links.length !== 0) {
                                 await writeRAGConversation(links, text, language);
                             }
 
-                            // ✅ NE PLUS CRÉER DE LOADER FLOATING
                             return;
                         }
 
@@ -184,9 +168,8 @@ class ConversationManager {
                         language = dataObject.metadata.language;
                         try {
                             if (dataObject.response) {
-                                // AJOUTER : dès le premier chunk, retirer le loader
+                                // Le loader reste en THINKING pendant tout le streaming
                                 if (!hasContent) {
-                                    this.removeLoadingMessage(); // ← AJOUTER ICI
                                     hasContent = true;
                                 }
 
@@ -201,8 +184,12 @@ class ConversationManager {
 
             await window.storageManager.addMessage(window.conversation_id, "user", user_image, message);
         } catch (e) {
-            // En cas d'erreur, supprimer le loader avec animation
-            this.removeLoadingMessage();
+            // ✅ AJOUTER : En cas d'erreur, aussi retourner en IDLE
+            const loaderEgg = document.getElementById(`loader-egg-${window.token}`);
+            if (loaderEgg) {
+                loaderEgg.setState('idle');
+                console.log('🥚 Loader passé en mode IDLE (erreur)'); // ← Debug
+            }
 
             await window.storageManager.addMessage(window.conversation_id, "user", user_image, message);
 
@@ -245,6 +232,37 @@ class ConversationManager {
         return conversation?.items || [];
     }
 
+    createLoadingMessage(avatarImage) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message message-assistant';
+        messageDiv.id = `message-${window.token}`;
+
+        messageDiv.innerHTML = `
+            ${avatarImage}
+            <div class="content streaming-content">
+                <div id="imanage_${window.token}" class="assistant-content"></div>
+                <div class="streaming-loader" id="loader-${window.token}">
+                    <loader-egg id="loader-egg-${window.token}" class="inline"></loader-egg>
+                </div>
+            </div>
+        `;
+
+        const messageBox = document.getElementById('messages');
+        messageBox.appendChild(messageDiv);
+        messageBox.scrollTop = messageBox.scrollHeight;
+
+        // ✅ AJOUTER : Passer le loader en mode THINKING
+        setTimeout(() => {
+            const loaderEgg = document.getElementById(`loader-egg-${window.token}`);
+            if (loaderEgg) {
+                loaderEgg.setState('thinking'); // ← Démarre l'animation THINKING
+                console.log('🥚 Loader démarré en mode THINKING'); // ← Debug
+            }
+        }, 100); // Attendre que le custom element soit connecté
+
+        return messageDiv;
+    }
+
     removeLoadingMessage() {
         const loaderId = `loader-${window.token}`;
         const loaderElement = document.getElementById(loaderId);
@@ -260,11 +278,8 @@ class ConversationManager {
             }, 300);
         }
 
-        // Afficher le contenu
-        const content = document.getElementById(`imanage_${window.token}`);
-        if (content) {
-            content.style.display = 'block';
-        }
+        // Le contenu est déjà visible dans la nouvelle structure
+        // Plus besoin de l'afficher explicitement
     }
 
     addImanageBadge() {
