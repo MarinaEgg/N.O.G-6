@@ -21,6 +21,9 @@ class LoaderEgg extends HTMLElement {
     this.currentPosition = LoaderEgg.POSITIONS.INLINE;
     this.transformer = null;
     this._uid = Math.random().toString(36).substr(2, 9); // UID unique pour éviter conflits
+    
+    // ✅ AJOUTER : Initialiser l'attribut data-state
+    this.setAttribute('data-state', 'idle');
   }
 
   connectedCallback() {
@@ -42,6 +45,9 @@ class LoaderEgg extends HTMLElement {
     }
 
     this.currentState = newState;
+    
+    // ✅ AJOUTER : Mettre à jour l'attribut data-state pour le CSS
+    this.setAttribute('data-state', newState);
     
     if (newState === LoaderEgg.STATES.THINKING) {
       this.transformer?.startTransformation();
