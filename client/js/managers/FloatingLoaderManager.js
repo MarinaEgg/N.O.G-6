@@ -38,15 +38,14 @@ class FloatingLoaderManager {
     this.loader.setState('idle');
     this.loader.style.display = 'none';
     
-    // Ajouter au body
-    document.body.appendChild(this.loader);
+    // Créé mais pas encore inséré - sera inséré dans le conteneur de messages
     this.isInitialized = true;
 
     console.log('FloatingLoaderManager: Loader global créé');
   }
 
   /**
-   * Affiche le loader en mode IDLE (standby)
+   * Affiche le loader en mode IDLE (standby) à la place du prochain message
    */
   show() {
     if (!this.loader) {
@@ -54,8 +53,19 @@ class FloatingLoaderManager {
       return;
     }
 
+    // Insérer dans le conteneur de messages à la fin
+    const messageBox = document.getElementById('messages');
+    if (messageBox && !this.loader.parentNode) {
+      messageBox.appendChild(this.loader);
+    }
+
     this.loader.style.display = 'block';
     this.loader.setState('idle');
+    
+    // Scroll vers le bas pour voir le loader
+    if (messageBox) {
+      messageBox.scrollTop = messageBox.scrollHeight;
+    }
   }
 
   /**
