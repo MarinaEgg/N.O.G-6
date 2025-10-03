@@ -34,8 +34,7 @@
     const imanage_image = `<img class="user" src="/assets/img/imanage_egg.png" alt="iManage Avatar">`;
     const video_image = `<img class="user" src="/assets/img/imanage_egg.png" alt="Video Icon">`;
     const nog_image = `<img id="nog_image" class="user" src="/assets/img/nog_logo_no_text.png" alt="nOg logo">`; // egg
-    const loading_video = `<img style="width: 40px; height: 40px; opacity:1; content: url(/assets/img/nog_logo_no_text.png); background-position: center; background-repeat: no-repeat; background-size: cover;" id="nog_video" class="conversation_video">`;
-    const shape = `<img class="assistant-image" id="shape" style="width: 40px; height: 40px;position:absolute; content: url(/assets/img/gpt_egg.png); background-position: center; background-repeat: no-repeat; background-size: cover;">`;
+    // Variables shape et loading_video supprimées - remplacées par LoaderEgg component
   </script>
   <script>
     const params = new URLSearchParams(window.location.search);
@@ -301,6 +300,8 @@
   <script src="/assets/js/highlight.min.js"></script>
 
   <!-- Nos modules dans l'ordre de dépendance -->
+  <script src="/assets/js/components/LoaderEgg.js" type="module"></script>
+  <script src="/assets/js/managers/FloatingLoaderManager.js" type="module"></script>
   <script src="/assets/js/icons.js"></script>
   <script src="/assets/js/utils.js"></script> <!-- 1. Fonctions pures -->
   <script src="/assets/js/storage.js"></script> <!-- 2. Stockage -->
