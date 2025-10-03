@@ -44,10 +44,24 @@ class ConversationManager {
             await new Promise((r) => setTimeout(r, 500));
             window.scrollTo(0, 0);
 
-            message_box.innerHTML += `
-                <div class="message message-assistant">
+            // Créer un message loader séparé AVANT le message de contenu
+            const loaderDiv = document.createElement('div');
+            loaderDiv.className = 'message message-assistant loader-message'; // ← NOUVELLE CLASSE
+            loaderDiv.id = `loader-${window.token}`;
+            loaderDiv.innerHTML = `
+                <div class="loader-container-message">
                     <loader-egg class="inline"></loader-egg>
-                    <div class="content" id="imanage_${window.token}">
+                </div>
+            `;
+
+            // Insérer le loader
+            message_box.appendChild(loaderDiv);
+
+            // Message de contenu (sans loader) - SÉPARÉ
+            message_box.innerHTML += `
+                <div class="message message-assistant" id="content-${window.token}">
+                    <div class="avatar-placeholder"></div>
+                    <div class="content" id="imanage_${window.token}" style="display: none;">
                         <div id="cursor"></div>
                     </div>
                 </div>
@@ -56,8 +70,8 @@ class ConversationManager {
             message_box.scrollTop = message_box.scrollHeight;
             window.scrollTo(0, 0);
 
-            // Récupérer instance loader inline et passer en THINKING
-            const inlineLoader = document.querySelector('.message:last-child loader-egg');
+            // Récupérer instance loader depuis le message loader séparé
+            const inlineLoader = document.querySelector(`#loader-${window.token} loader-egg`);
             if (inlineLoader && typeof inlineLoader.setState === 'function') {
                 inlineLoader.setState('thinking');
             }
@@ -127,6 +141,8 @@ class ConversationManager {
 
             let links = [];
             let language = "fr";
+            let hasContent = false;
+
             while (true) {
                 const { value, done } = await reader.read();
 
@@ -141,13 +157,9 @@ class ConversationManager {
                         const eventData = line.slice(6).trim();
                         if (eventData === "[DONE]") {
                             await processPendingText();
-                            
-                            // ✅ PASSER EN IDLE SEULEMENT ICI
-                            const inlineLoader = document.querySelector('.message:last-child loader-egg');
-                            if (inlineLoader) {
-                                inlineLoader.setState('idle');
-                            }
-                            
+
+                            // Le loader a déjà été supprimé au premier chunk
+
                             await writeNoRAGConversation(text, message, links);
                             if (links.length !== 0) {
                                 await writeRAGConversation(links, text, language);
@@ -158,20 +170,26 @@ class ConversationManager {
                         }
 
                         const dataObject = JSON.parse(eventData);
-                        
+
                         // ✅ GARDER LE LOADER EN THINKING - NE RIEN FAIRE
                         if (links.length === 0) {
                             links = dataObject.metadata.links;
                         }
-                        
+
                         // ✅ Ajouter badge iManage si nécessaire
                         if (links.length !== 0) {
                             this.addImanageBadge();
                         }
-                        
+
                         language = dataObject.metadata.language;
                         try {
                             if (dataObject.response) {
+                                // AJOUTER : dès le premier chunk, retirer le loader
+                                if (!hasContent) {
+                                    this.removeLoadingMessage(); // ← AJOUTER ICI
+                                    hasContent = true;
+                                }
+
                                 await processPendingText(dataObject.response);
                             }
                         } catch (error) {
@@ -183,11 +201,8 @@ class ConversationManager {
 
             await window.storageManager.addMessage(window.conversation_id, "user", user_image, message);
         } catch (e) {
-            // En cas d'erreur, passer en IDLE
-            const inlineLoader = document.querySelector('.message:last-child loader-egg');
-            if (inlineLoader) {
-                inlineLoader.setState('idle');
-            }
+            // En cas d'erreur, supprimer le loader avec animation
+            this.removeLoadingMessage();
 
             await window.storageManager.addMessage(window.conversation_id, "user", user_image, message);
 
@@ -228,6 +243,28 @@ class ConversationManager {
             items: await window.storageManager.getConversation(conversationId)
         };
         return conversation?.items || [];
+    }
+
+    removeLoadingMessage() {
+        const loaderId = `loader-${window.token}`;
+        const loaderElement = document.getElementById(loaderId);
+
+        if (loaderElement) {
+            // Animation de sortie
+            loaderElement.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+            loaderElement.style.opacity = '0';
+            loaderElement.style.transform = 'translateY(-10px)';
+
+            setTimeout(() => {
+                loaderElement.remove();
+            }, 300);
+        }
+
+        // Afficher le contenu
+        const content = document.getElementById(`imanage_${window.token}`);
+        if (content) {
+            content.style.display = 'block';
+        }
     }
 
     addImanageBadge() {
