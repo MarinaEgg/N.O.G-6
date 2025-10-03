@@ -1,4 +1,4 @@
-import floatingLoader from './managers/FloatingLoaderManager.js';
+// FloatingLoaderManager disponible via window.floatingLoader (défini dans FloatingLoaderManager.js)
 
 class ConversationManager {
     constructor() {
@@ -60,8 +60,10 @@ class ConversationManager {
 
             // Récupérer instance loader inline et passer en THINKING
             const inlineLoader = document.querySelector('.message:last-child loader-egg');
-            if (inlineLoader) {
+            if (inlineLoader && typeof inlineLoader.setState === 'function') {
                 inlineLoader.setState('thinking');
+            } else {
+                console.warn('⚠️ LoaderEgg not found or not initialized');
             }
 
             await new Promise((r) => setTimeout(r, 1000));
@@ -149,7 +151,11 @@ class ConversationManager {
                             }
 
                             // Afficher loader floating standby
-                            floatingLoader.show();
+                            if (window.floatingLoader) {
+                                window.floatingLoader.show();
+                            } else {
+                                console.warn('⚠️ FloatingLoaderManager not available');
+                            }
                             return;
                         }
 
@@ -158,13 +164,15 @@ class ConversationManager {
                             links = dataObject.metadata.links;
                             // CAS GPT : garder loader en IDLE
                             const inlineLoader = document.querySelector('.message:last-child loader-egg');
-                            if (inlineLoader) {
+                            if (inlineLoader && typeof inlineLoader.setState === 'function') {
                                 inlineLoader.setState('idle');
+                            } else {
+                                console.warn('⚠️ LoaderEgg not found for GPT case');
                             }
                         } else {
                             // CAS iManage : remplacer loader par œuf statique
                             const inlineLoader = document.querySelector('.message:last-child loader-egg');
-                            if (inlineLoader) {
+                            if (inlineLoader && inlineLoader.parentNode) {
                                 const staticEgg = document.createElement('img');
                                 staticEgg.src = '/assets/img/imanage_egg.png';
                                 staticEgg.alt = 'iManage';
@@ -173,6 +181,8 @@ class ConversationManager {
                                 staticEgg.style.height = '40px';
 
                                 inlineLoader.replaceWith(staticEgg);
+                            } else {
+                                console.warn('⚠️ LoaderEgg not found for iManage replacement');
                             }
 
                             // Ajouter badge iManage
@@ -194,7 +204,7 @@ class ConversationManager {
         } catch (e) {
             // En cas d'erreur, remplacer par œuf GPT statique
             const inlineLoader = document.querySelector('.message:last-child loader-egg');
-            if (inlineLoader) {
+            if (inlineLoader && inlineLoader.parentNode) {
                 const staticEgg = document.createElement('img');
                 staticEgg.src = '/assets/img/gpt_egg.png';
                 staticEgg.alt = 'GPT';
@@ -203,6 +213,8 @@ class ConversationManager {
                 staticEgg.style.height = '40px';
 
                 inlineLoader.replaceWith(staticEgg);
+            } else {
+                console.warn('⚠️ LoaderEgg not found for error case');
             }
 
             await window.storageManager.addMessage(window.conversation_id, "user", user_image, message);
