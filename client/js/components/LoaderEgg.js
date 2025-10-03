@@ -145,7 +145,7 @@ class LoaderEgg extends HTMLElement {
 
         /* Boules grises avec effet glass et contour gris nickel */
         .outer {
-          fill: var(--glass-bg);
+          /* Pas de fill CSS - utilise l'attribut SVG fill="url(#glass-gradient)" */
           stroke: var(--glass-border);
           stroke-width: 1;
           r: 2;
@@ -300,6 +300,7 @@ class IdleToThinkingTransform {
       // Boule grise externe
       outer.setAttribute('cx', x);
       outer.setAttribute('cy', y);
+      outer.setAttribute('fill', `url(#glass-gradient-${this._uid})`); // ← Forcer le gradient correct
 
       // Boule jaune interne (cachée en IDLE)
       inner.setAttribute('cx', innerX);
