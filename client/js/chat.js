@@ -289,29 +289,6 @@ const load_conversation = async (conversation_id) => {
   }, 500);
 };
 
-function changeEggImageToImanage() {
-  let imanageImageChanged = false;
-  if (!imanageImageChanged) {
-    document.getElementById(`shape_assistant_${window.token}`).style.content =
-      "url(/assets/img/imanage_egg.png)";
-
-    const imgElement = document.getElementById(`assistant_${window.token}`);
-    imgElement.style.opacity = "0";
-    imanageImageChanged = true;
-  }
-}
-
-function changeEggImageToGPTImage() {
-  let eggImageChanged = false;
-  if (!eggImageChanged) {
-    document.getElementById(`shape_assistant_${window.token}`).style.content =
-      "url(/assets/img/gpt_egg.png)";
-    const imgElement = document.getElementById(`assistant_${window.token}`);
-    imgElement.style.opacity = "0";
-    eggImageChanged = true;
-  }
-}
-
 async function writeNoRAGConversation(text, message, links) {
   document.getElementById(`imanage_${window.token}`).innerHTML =
     marked.parse(text) + actionsButtons;
