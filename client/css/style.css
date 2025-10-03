@@ -1370,18 +1370,7 @@ div.message:last-child {
   opacity: 1;
 }
 
-/* Loader floating standby */
-loader-egg.floating {
-  position: fixed;
-  bottom: 100px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 60px;
-  height: 60px;
-  z-index: 1000;
-  pointer-events: none;
-  transition: bottom 0.3s ease;
-}
+/* Loader floating supprimé - plus utilisé */
 
 .dynamic-warning {
   font-size: 11px;
