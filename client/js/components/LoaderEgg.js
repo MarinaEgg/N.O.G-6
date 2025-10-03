@@ -55,20 +55,9 @@ class LoaderEgg extends HTMLElement {
   }
 
   setPosition(position) {
-    if (!Object.values(LoaderEgg.POSITIONS).includes(position)) {
-      console.warn(`Position invalide: ${position}`);
-      return;
-    }
-
-    this.currentPosition = position;
-    
-    if (position === LoaderEgg.POSITIONS.FLOATING) {
-      this.classList.add('floating');
-      this.classList.remove('inline');
-    } else {
-      this.classList.add('inline');
-      this.classList.remove('floating');
-    }
+    // Position simplifiée - seulement inline maintenant
+    this.currentPosition = LoaderEgg.POSITIONS.INLINE;
+    this.classList.add('inline');
   }
 
   render() {
@@ -93,15 +82,7 @@ class LoaderEgg extends HTMLElement {
           vertical-align: middle;
         }
 
-        /* Position floating (à la place du prochain message bot) */
-        :host(.floating) {
-          position: relative;
-          display: block;
-          width: 40px;
-          height: 40px;
-          margin: 20px 0;
-          margin-left: 0;
-        }
+        /* Position floating supprimée - plus utilisée */
 
         .loader-container {
           width: 100%;
@@ -145,7 +126,7 @@ class LoaderEgg extends HTMLElement {
 
         /* Boules grises avec effet glass et contour gris nickel */
         .outer {
-          fill: url(#glass-gradient);
+          /* fill appliqué en JavaScript avec UID correct */
           stroke: var(--glass-border);
           stroke-width: 1;
           r: 2;
@@ -300,6 +281,7 @@ class IdleToThinkingTransform {
       // Boule grise externe
       outer.setAttribute('cx', x);
       outer.setAttribute('cy', y);
+      outer.setAttribute('fill', `url(#glass-gradient-${this._uid})`); // ← Application du gradient avec UID correct
 
       // Boule jaune interne (cachée en IDLE)
       inner.setAttribute('cx', innerX);
