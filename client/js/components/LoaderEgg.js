@@ -122,9 +122,9 @@ class LoaderEgg extends HTMLElement {
 
         /* Traits de chaîne IDLE */
         .chain-connector {
-          stroke: rgba(255, 255, 255, 0.6);
+          stroke: #51565a;
           stroke-width: 1;
-          opacity: 0.3;
+          opacity: 0.4;
           transition: opacity 0.8s ease;
         }
 
@@ -134,7 +134,7 @@ class LoaderEgg extends HTMLElement {
 
         /* Traits vers centre THINKING */
         .connector {
-          stroke: rgba(0, 0, 0, 0.12);
+          stroke: #51565a;
           stroke-width: 1;
           opacity: 0;
           transition: opacity 0.8s ease;
@@ -144,14 +144,14 @@ class LoaderEgg extends HTMLElement {
           opacity: 0.8;
         }
 
-        /* CORRECTION : Améliorer visibilité boules grises → NOIR */
+        /* CORRECTION : Améliorer visibilité boules grises → GRIS CARBON */
         .outer {
           fill: var(--glass-bg);
-          stroke: rgba(0, 0, 0, 0.8); /* ← CHANGÉ de 0.15 à 0.8 */
+          stroke: #51565a; /* ← GRIS CARBON pour un rendu plus doux */
           stroke-width: 1.5; /* ← AUGMENTÉ de 1 à 1.5 */
           r: 2;
-          filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.12))
-                  drop-shadow(0 2px 8px rgba(0, 0, 0, 0.08));
+          filter: drop-shadow(0 4px 16px rgba(81, 86, 90, 0.12))
+                  drop-shadow(0 2px 8px rgba(81, 86, 90, 0.08));
           transition: all 0.3s ease;
         }
 
