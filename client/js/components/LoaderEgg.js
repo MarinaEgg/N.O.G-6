@@ -78,7 +78,7 @@ class LoaderEgg extends HTMLElement {
           --colour-1: #ffffff;
           --colour-4: #f9e479;
           --glass-bg: rgba(255, 255, 255, 0.85);
-          --glass-border: #7b7d7f; /* ← GRIS NICKEL pour le contour des boules */
+          --glass-border: rgba(123, 125, 127, 0.8); /* ← GRIS NICKEL avec opacité pour le contour */
         }
 
         :host {
@@ -145,7 +145,7 @@ class LoaderEgg extends HTMLElement {
 
         /* Boules grises avec effet glass et contour gris nickel */
         .outer {
-          /* fill défini dans le SVG via url(#glass-gradient) */
+          fill: var(--glass-bg);
           stroke: var(--glass-border);
           stroke-width: 1;
           r: 2;
