@@ -20,6 +20,7 @@ class LoaderEgg extends HTMLElement {
     this.currentState = LoaderEgg.STATES.IDLE;
     this.currentPosition = LoaderEgg.POSITIONS.INLINE;
     this.transformer = null;
+    this._uid = Math.random().toString(36).substr(2, 9); // UID unique pour éviter conflits
   }
 
   connectedCallback() {
@@ -112,9 +113,11 @@ class LoaderEgg extends HTMLElement {
           justify-content: center;
         }
 
+        /* AJOUT : Forcer dimensions SVG */
         #mainSVG {
           width: 100%;
           height: 100%;
+          display: block; /* IMPORTANT */
         }
 
         /* Traits de chaîne IDLE */
@@ -141,15 +144,14 @@ class LoaderEgg extends HTMLElement {
           opacity: 0.8;
         }
 
-        /* Boules grises */
+        /* CORRECTION : Améliorer visibilité boules grises → NOIR */
         .outer {
           fill: var(--glass-bg);
-          stroke: var(--glass-border);
-          stroke-width: 1;
+          stroke: rgba(0, 0, 0, 0.8); /* ← CHANGÉ de 0.15 à 0.8 */
+          stroke-width: 1.5; /* ← AUGMENTÉ de 1 à 1.5 */
           r: 2;
-          filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.08)) 
-                  drop-shadow(0 2px 8px rgba(0, 0, 0, 0.04)) 
-                  drop-shadow(0 1px 3px rgba(255, 255, 255, 0.6));
+          filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.12))
+                  drop-shadow(0 2px 8px rgba(0, 0, 0, 0.08));
           transition: all 0.3s ease;
         }
 
@@ -166,27 +168,28 @@ class LoaderEgg extends HTMLElement {
           opacity: 1;
         }
 
-        /* Centre jaune glass IDLE */
+        /* CORRECTION : Centre jaune plus petit pour voir les boules autour */
         .center-core {
-          width: 32px;
-          height: 32px;
+          width: 18px; /* ← RÉDUIT de 32px à 18px */
+          height: 18px; /* ← RÉDUIT de 32px à 18px */
           border-radius: 50%;
           position: absolute;
           top: 50%;
           left: 50%;
           transform: translate(-50%, -50%);
-          background: radial-gradient(circle at 30% 30%, 
-                      rgba(249, 228, 121, 0.9) 0%, 
-                      rgba(249, 228, 121, 0.7) 40%, 
-                      rgba(249, 228, 121, 0.5) 100%);
-          box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1),
-                      0 4px 8px rgba(0, 0, 0, 0.08),
-                      0 0 0 2px rgba(249, 228, 121, 0.3),
-                      0 6px 12px rgba(249, 228, 121, 0.2) inset,
-                      0 -2px 6px rgba(255, 255, 255, 0.4) inset;
+          background: radial-gradient(circle at 30% 30%,
+                      rgba(249, 228, 121, 0.95) 0%,
+                      rgba(249, 228, 121, 0.85) 40%,
+                      rgba(249, 228, 121, 0.7) 100%);
+          box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.15),
+                      0 4px 8px rgba(0, 0, 0, 0.12),
+                      0 0 0 2px rgba(249, 228, 121, 0.4),
+                      0 6px 12px rgba(249, 228, 121, 0.3) inset,
+                      0 -2px 6px rgba(255, 255, 255, 0.5) inset;
           backdrop-filter: blur(4px);
           transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
           opacity: 1;
+          z-index: 10; /* ← AJOUTÉ pour passer au-dessus des boules */
         }
 
         .center-core.hidden {
@@ -201,9 +204,11 @@ class LoaderEgg extends HTMLElement {
       </style>
 
       <div class="loader-container">
-        <svg id="mainSVG" viewBox="0 0 120 120">
+        <svg id="mainSVG" viewBox="0 0 120 120" preserveAspectRatio="xMidYMid meet">
+          <!-- ↑ AJOUTÉ preserveAspectRatio -->
           <defs>
-            <radialGradient id="glass-gradient" cx="0.3" cy="0.3" r="0.8">
+            <radialGradient id="glass-gradient-${this._uid}" cx="0.3" cy="0.3" r="0.8">
+              <!-- ↑ AJOUTÉ uid unique pour éviter conflits entre instances -->
               <stop offset="0%" stop-color="rgba(255, 255, 255, 0.95)"/>
               <stop offset="40%" stop-color="rgba(255, 255, 255, 0.85)"/>
               <stop offset="100%" stop-color="rgba(255, 255, 255, 0.75)"/>
@@ -213,7 +218,7 @@ class LoaderEgg extends HTMLElement {
             <!-- Templates -->
             <line class="chain-connector template"></line>
             <line class="connector template"></line>
-            <circle class="outer template" fill="url(#glass-gradient)"></circle>
+            <circle class="outer template" fill="url(#glass-gradient-${this._uid})"></circle>
             <circle class="inner template"></circle>
           </g>
         </svg>
