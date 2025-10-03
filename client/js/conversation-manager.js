@@ -1,3 +1,5 @@
+import floatingLoader from './managers/FloatingLoaderManager.js';
+
 class ConversationManager {
     constructor() {
         this.isStreaming = false;
@@ -46,8 +48,7 @@ class ConversationManager {
 
             message_box.innerHTML += `
                 <div class="message message-assistant">
-                ${shape.replace('id="shape"', `id="shape_assistant_${window.token}"`)}
-                ${loading_video.replace('id="nog_video"', `id="assistant_${window.token}"`)}
+                    <loader-egg class="inline"></loader-egg>
                     <div class="content" id="imanage_${window.token}">
                         <div id="cursor"></div>
                     </div>
@@ -56,6 +57,13 @@ class ConversationManager {
 
             message_box.scrollTop = message_box.scrollHeight;
             window.scrollTo(0, 0);
+
+            // Récupérer instance loader inline et passer en THINKING
+            const inlineLoader = document.querySelector('.message:last-child loader-egg');
+            if (inlineLoader) {
+                inlineLoader.setState('thinking');
+            }
+
             await new Promise((r) => setTimeout(r, 1000));
             window.scrollTo(0, 0);
 
@@ -139,15 +147,36 @@ class ConversationManager {
                             if (links.length !== 0) {
                                 await writeRAGConversation(links, text, language);
                             }
+
+                            // Afficher loader floating standby
+                            floatingLoader.show();
                             return;
                         }
 
                         const dataObject = JSON.parse(eventData);
                         if (links.length === 0) {
                             links = dataObject.metadata.links;
-                            changeEggImageToGPTImage();
+                            // CAS GPT : garder loader en IDLE
+                            const inlineLoader = document.querySelector('.message:last-child loader-egg');
+                            if (inlineLoader) {
+                                inlineLoader.setState('idle');
+                            }
                         } else {
-                            changeEggImageToImanage();
+                            // CAS iManage : remplacer loader par œuf statique
+                            const inlineLoader = document.querySelector('.message:last-child loader-egg');
+                            if (inlineLoader) {
+                                const staticEgg = document.createElement('img');
+                                staticEgg.src = '/assets/img/imanage_egg.png';
+                                staticEgg.alt = 'iManage';
+                                staticEgg.className = 'avatar-egg';
+                                staticEgg.style.width = '40px';
+                                staticEgg.style.height = '40px';
+
+                                inlineLoader.replaceWith(staticEgg);
+                            }
+
+                            // Ajouter badge iManage
+                            this.addImanageBadge();
                         }
                         language = dataObject.metadata.language;
                         try {
@@ -163,8 +192,18 @@ class ConversationManager {
 
             await window.storageManager.addMessage(window.conversation_id, "user", user_image, message);
         } catch (e) {
-            document.getElementById(`shape_assistant_${window.token}`).src = "/assets/img/gpt_egg.png";
-            document.getElementById(`assistant_${window.token}`).style.opacity = "0";
+            // En cas d'erreur, remplacer par œuf GPT statique
+            const inlineLoader = document.querySelector('.message:last-child loader-egg');
+            if (inlineLoader) {
+                const staticEgg = document.createElement('img');
+                staticEgg.src = '/assets/img/gpt_egg.png';
+                staticEgg.alt = 'GPT';
+                staticEgg.className = 'avatar-egg';
+                staticEgg.style.width = '40px';
+                staticEgg.style.height = '40px';
+
+                inlineLoader.replaceWith(staticEgg);
+            }
 
             await window.storageManager.addMessage(window.conversation_id, "user", user_image, message);
 
@@ -205,6 +244,29 @@ class ConversationManager {
             items: await window.storageManager.getConversation(conversationId)
         };
         return conversation?.items || [];
+    }
+
+    addImanageBadge() {
+        // Ajouter logo iManage à côté des actions
+        const messageEl = document.querySelector('.message:last-child');
+        if (!messageEl) return;
+
+        // Attendre que les actions soient créées
+        setTimeout(() => {
+            const actionsEl = messageEl.querySelector('.actions');
+
+            if (actionsEl && !actionsEl.querySelector('.source-badge')) {
+                const badge = document.createElement('img');
+                badge.src = '/assets/img/imanage_logo_small.png';
+                badge.className = 'source-badge';
+                badge.alt = 'iManage source';
+                badge.style.width = '20px';
+                badge.style.height = '20px';
+                badge.style.marginRight = '8px';
+
+                actionsEl.insertBefore(badge, actionsEl.firstChild);
+            }
+        }, 100);
     }
 }
 
