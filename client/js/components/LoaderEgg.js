@@ -168,10 +168,10 @@ class LoaderEgg extends HTMLElement {
           opacity: 1;
         }
 
-        /* CORRECTION : Centre jaune plus petit pour voir les boules autour */
+        /* CORRECTION : Centre jaune proportionnel au conteneur */
         .center-core {
-          width: 18px; /* ← RÉDUIT de 32px à 18px */
-          height: 18px; /* ← RÉDUIT de 32px à 18px */
+          width: 30%; /* ← PROPORTIONNEL : 30% du conteneur */
+          height: 30%; /* ← PROPORTIONNEL : 30% du conteneur */
           border-radius: 50%;
           position: absolute;
           top: 50%;
