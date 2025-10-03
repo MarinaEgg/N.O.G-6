@@ -1,18 +1,22 @@
 /**
- * FloatingLoaderManager - Gestionnaire singleton pour l'instance "standby"
- * Gère le loader global qui descend sous les messages en attente de nouvel input
+ * FloatingLoaderManager - Gestionnaire singleton
+ * PAS D'IMPORT ES6 - LoaderEgg déjà enregistré globalement
  */
-import LoaderEgg from '../components/LoaderEgg.js';
 
 class FloatingLoaderManager {
   constructor() {
     this.loader = null;
     this.isInitialized = false;
-    this.init();
   }
 
   init() {
-    // S'assurer que le DOM est prêt
+    // Attendre que customElements soit défini
+    if (!window.customElements || !customElements.get('loader-egg')) {
+      console.warn('⚠️ LoaderEgg not registered yet, retrying...');
+      setTimeout(() => this.init(), 100);
+      return;
+    }
+
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', () => this.createLoader());
     } else {
@@ -23,11 +27,16 @@ class FloatingLoaderManager {
   createLoader() {
     if (this.isInitialized) return;
 
-    // Créer loader global floating
+    // Vérifier que loader-egg est bien défini
+    if (!customElements.get('loader-egg')) {
+      console.error('❌ loader-egg custom element not defined!');
+      return;
+    }
+
     this.loader = document.createElement('loader-egg');
     this.loader.setPosition('floating');
     this.loader.setState('idle');
-    this.loader.style.display = 'none'; // Caché au départ
+    this.loader.style.display = 'none';
     
     // Ajouter au body
     document.body.appendChild(this.loader);
@@ -106,5 +115,8 @@ class FloatingLoaderManager {
   }
 }
 
-// Export singleton
-export default new FloatingLoaderManager();
+// ✅ Export singleton GLOBAL (pas ES6)
+window.floatingLoader = new FloatingLoaderManager();
+window.floatingLoader.init();
+
+console.log('✅ FloatingLoaderManager loaded globally');
