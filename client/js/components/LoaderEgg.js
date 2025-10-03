@@ -145,7 +145,7 @@ class LoaderEgg extends HTMLElement {
 
         /* Boules grises avec effet glass et contour gris nickel */
         .outer {
-          fill: var(--glass-bg);
+          /* fill défini dans le SVG via url(#glass-gradient) */
           stroke: var(--glass-border);
           stroke-width: 1;
           r: 2;
