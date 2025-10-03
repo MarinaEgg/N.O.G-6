@@ -443,4 +443,6 @@ class IdleToThinkingTransform {
 // Enregistrer le custom element
 customElements.define('loader-egg', LoaderEgg);
 
-export default LoaderEgg;
+// LoaderEgg est disponible globalement via customElements.define()
+// Accessible dans tout le code via document.createElement('loader-egg')
+console.log('✅ LoaderEgg component registered globally');
