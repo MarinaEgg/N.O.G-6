@@ -83,8 +83,8 @@ class LoaderEgg extends HTMLElement {
 
         /* Position inline (avatar dans message) */
         :host(.inline) {
-          width: 40px;
-          height: 40px;
+          width: 60px; /* ← AUGMENTÉ de 40px à 60px */
+          height: 60px; /* ← AUGMENTÉ de 40px à 60px */
           vertical-align: middle;
         }
 
@@ -108,9 +108,9 @@ class LoaderEgg extends HTMLElement {
 
         /* Traits de chaîne IDLE */
         .chain-connector {
-          stroke: #7b7d7f;
-          stroke-width: 1;
-          opacity: 0.4;
+          stroke: rgba(123, 125, 127, 0.6); /* ← Opacité intégrée */
+          stroke-width: 1.5; /* ← AUGMENTÉ de 1 à 1.5 */
+          opacity: 1; /* ← Géré par la couleur maintenant */
           transition: opacity 0.8s ease;
         }
 
@@ -120,25 +120,24 @@ class LoaderEgg extends HTMLElement {
 
         /* Traits vers centre THINKING */
         .connector {
-          stroke: #7b7d7f;
-          stroke-width: 1;
+          stroke: rgba(123, 125, 127, 0.3); /* ← Plus subtil pour THINKING */
+          stroke-width: 1.5; /* ← AUGMENTÉ de 1 à 1.5 */
           opacity: 0;
           transition: opacity 0.8s ease;
         }
 
         .connector.visible {
-          opacity: 0.8;
+          opacity: 1; /* ← AUGMENTÉ de 0.8 à 1 */
         }
 
         /* Boules grises avec effet glass et contour gris nickel */
         .outer {
           /* fill appliqué en JavaScript avec UID correct */
           stroke: var(--glass-border);
-          stroke-width: 1;
-          r: 2;
-          filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.08)) 
-                  drop-shadow(0 2px 8px rgba(0, 0, 0, 0.04)) 
-                  drop-shadow(0 1px 3px rgba(255, 255, 255, 0.6));
+          stroke-width: 1.5; /* ← AUGMENTÉ de 1 à 1.5 */
+          r: 3; /* ← AUGMENTÉ de 2 à 3 */
+          filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.12))
+                  drop-shadow(0 1px 4px rgba(0, 0, 0, 0.08));
           transition: all 0.3s ease;
         }
 
@@ -151,32 +150,37 @@ class LoaderEgg extends HTMLElement {
         }
 
         .inner.visible {
-          r: 1.5;
+          r: 2.5; /* ← AUGMENTÉ de 1.5 à 2.5 */
           opacity: 1;
         }
 
         /* CORRECTION : Centre jaune proportionnel au conteneur */
         .center-core {
-          width: 24%; /* ← PROPORTIONNEL : 24% du conteneur */
-          height: 24%; /* ← PROPORTIONNEL : 24% du conteneur */
+          width: 30%; /* ← AUGMENTÉ de 24% à 30% */
+          height: 30%; /* ← AUGMENTÉ de 24% à 30% */
           border-radius: 50%;
           position: absolute;
           top: 50%;
           left: 50%;
           transform: translate(-50%, -50%);
+          
+          /* Gradient plus visible */
           background: radial-gradient(circle at 30% 30%,
-                      rgba(249, 228, 121, 0.95) 0%,
-                      rgba(249, 228, 121, 0.85) 40%,
-                      rgba(249, 228, 121, 0.7) 100%);
-          box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.15),
-                      0 4px 8px rgba(0, 0, 0, 0.12),
-                      0 0 0 2px rgba(249, 228, 121, 0.4),
-                      0 6px 12px rgba(249, 228, 121, 0.3) inset,
-                      0 -2px 6px rgba(255, 255, 255, 0.5) inset;
+                      rgba(249, 228, 121, 1) 0%, /* ← Opacité max */
+                      rgba(249, 228, 121, 0.9) 40%,
+                      rgba(249, 228, 121, 0.75) 100%);
+          
+          /* Ombres plus marquées */
+          box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.2), /* ← Plus sombre */
+                      0 4px 12px rgba(0, 0, 0, 0.15),
+                      0 0 0 2px rgba(249, 228, 121, 0.5),
+                      0 8px 16px rgba(249, 228, 121, 0.4) inset,
+                      0 -3px 8px rgba(255, 255, 255, 0.6) inset;
+          
           backdrop-filter: blur(4px);
           transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
           opacity: 1;
-          z-index: 10; /* ← AJOUTÉ pour passer au-dessus des boules */
+          z-index: 10;
         }
 
         .center-core.hidden {
