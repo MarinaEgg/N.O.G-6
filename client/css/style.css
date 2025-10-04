@@ -166,8 +166,8 @@ pre {
   position: relative;
   /* Effet frosted glass sur fond blanc */
   background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(25px);
   -webkit-backdrop-filter: blur(25px);
+  backdrop-filter: blur(25px);
   border: 1px solid rgba(255, 255, 255, 0.4);
   box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.08),
@@ -369,6 +369,7 @@ body.sidebar-open .conversations {
   align-items: center;
   gap: 4px;
   transition: all 0.3s ease;
+  -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
@@ -479,6 +480,7 @@ body.sidebar-open {
     height: 100vh;
     background: rgba(0, 0, 0, 0.5);
     z-index: 998;
+    -webkit-backdrop-filter: blur(2px);
     backdrop-filter: blur(2px);
   }
 }
@@ -557,8 +559,8 @@ body.sidebar-open {
 }
 
 .box {
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(25px);
+  backdrop-filter: blur(25px);
   background-color: var(--blur-bg);
   height: 100%;
   width: 100%;
@@ -1089,8 +1091,8 @@ div.message:last-child {
 }
 
 .stop_generating button {
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(25px);
+  backdrop-filter: blur(25px);
   background-color: var(--blur-bg);
   border-radius: var(--border-radius-1);
   border: 1px solid var(--blur-border);
@@ -1164,8 +1166,8 @@ label {
   text-indent: -9999px;
   width: 50px;
   height: 30px;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(25px);
+  backdrop-filter: blur(25px);
   background-color: var(--blur-bg);
   border-radius: var(--border-radius-1);
   border: 1px solid var(--blur-border);
@@ -1226,18 +1228,15 @@ select[hidden] {
 }
 
 .disable-scrollbars {
-  -ms-overflow-style: none;
   scrollbar-width: none;
 }
 
 select {
   -webkit-border-radius: var(--border-radius-md);
-  -moz-border-radius: var(--border-radius-md);
   border-radius: var(--border-radius-md);
 
   -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
-
   cursor: pointer;
   background-color: var(--blur-bg);
   border: 1px solid var(--blur-border);
@@ -1374,8 +1373,8 @@ ul {
   margin: 10px;
   font-size: 20px;
   cursor: pointer;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(25px);
+  backdrop-filter: blur(25px);
   background-color: var(--blur-bg);
   border-radius: 10px;
   border: 1px solid var(--blur-border);
@@ -1524,8 +1523,8 @@ a:-webkit-any-link {
   border-radius: var(--border-radius-lg);
   /* Effet frosted glass sur fond blanc */
   background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(25px);
   -webkit-backdrop-filter: blur(25px);
+  backdrop-filter: blur(25px);
   border: 1px solid rgba(255, 255, 255, 0.4);
   box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.08),
@@ -1576,8 +1575,8 @@ a:-webkit-any-link {
 
   /* Effet frosted glass avec accent jaune */
   background: rgba(252, 233, 107, 0.15);
-  backdrop-filter: blur(15px);
-  -webkit-backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(25px);
+  backdrop-filter: blur(25px);
   box-shadow:
     0 4px 16px rgba(252, 233, 107, 0.1),
     0 2px 4px rgba(0, 0, 0, 0.05),
@@ -2108,8 +2107,8 @@ a:-webkit-any-link {
 .video-source-bubble {
   /* Fond blanc pur avec effet frosted glass */
   background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(25px);
   -webkit-backdrop-filter: blur(25px);
+  backdrop-filter: blur(25px);
 
   /* Bordure subtile pour l'effet verre */
   border: 1px solid rgba(255, 255, 255, 0.4);
@@ -2175,8 +2174,8 @@ a:-webkit-any-link {
     0 4px 16px rgba(0, 0, 0, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.8);
   border-color: rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(30px);
-  -webkit-backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(25px);
+  backdrop-filter: blur(25px);
 }
 
 .video-source-title {
@@ -2306,8 +2305,8 @@ body.sidebar-open .modern-chat-container {
 .chat-input-wrapper {
   position: relative;
   background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(25px);
   -webkit-backdrop-filter: blur(25px);
+  backdrop-filter: blur(25px);
   border: 1px solid rgba(0, 0, 0, 0.15);
   border-radius: var(--border-radius-lg);
   box-shadow:
@@ -2351,6 +2350,7 @@ body.sidebar-open .modern-chat-container {
   width: 36px;
   height: 36px;
   background: rgba(255, 255, 255, 0.8);
+  -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(0, 0, 0, 0.1);
   border-radius: var(--border-radius-md);
@@ -2465,8 +2465,8 @@ body.sidebar-open .modern-chat-container {
   bottom: auto;
   left: auto;
   background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(30px);
-  -webkit-backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(25px);
+  backdrop-filter: blur(25px);
   border: 1px solid rgba(255, 255, 255, 0.5);
   border-radius: var(--border-radius-lg);
   box-shadow:
@@ -2520,6 +2520,7 @@ body.sidebar-open .modern-chat-container {
 
 .dropdown-item:hover {
   background: rgba(255, 255, 255, 0.8);
+  -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
 }
 
@@ -2562,6 +2563,7 @@ body.sidebar-open .modern-chat-container {
 
 .connector-item:hover {
   background: rgba(255, 255, 255, 0.8);
+  -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
 }
 
@@ -2603,6 +2605,7 @@ body.sidebar-open .modern-chat-container {
   right: 0;
   bottom: 0;
   background: rgba(255, 255, 255, 0.95);
+  -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   z-index: 2000;
   display: none;
@@ -2979,8 +2982,8 @@ body.sidebar-open .modern-chat-container {
   left: 20px;
   right: 20px;
   background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(30px);
-  -webkit-backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(25px);
+  backdrop-filter: blur(25px);
   border: 1px solid rgba(255, 255, 255, 0.5);
   border-radius: var(--border-radius-lg);
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
