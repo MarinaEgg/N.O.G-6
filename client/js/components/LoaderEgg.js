@@ -123,15 +123,15 @@ class LoaderEgg extends HTMLElement {
           opacity: 1;
         }
 
-        /* ✅ CORRECTION : Boules grises TOUJOURS VISIBLES en IDLE */
+        /* ✅ CORRECTION : Boules grises PLUS VISIBLES (opacité réduite du gradient) */
         .outer {
-          stroke: var(--glass-border);
-          stroke-width: 1.5;
+          stroke: #7b7d7f; /* ← Gris nickel plus visible */
+          stroke-width: 2; /* ← AUGMENTÉ de 1.5 à 2 */
           r: 3;
           filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.12))
                   drop-shadow(0 1px 4px rgba(0, 0, 0, 0.08));
           transition: all 0.3s ease;
-          opacity: 1; /* ← TOUJOURS VISIBLE */
+          opacity: 1;
         }
 
         /* Boules jaunes intérieures (THINKING uniquement) */
