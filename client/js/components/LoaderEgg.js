@@ -1,8 +1,6 @@
 /**
  * LoaderEgg - Avatar intelligent SVG avec animation IDLE ↔ THINKING
- * Gère les états et positions dynamiques selon le contexte
- * 
- * VERSION : CORRECTIONS VISUELLES IDLE (SANS TOUCHER À LA LOGIQUE)
+ * VERSION OPTIMISÉE CLS : Réduction nombre boules + amplitude
  */
 class LoaderEgg extends HTMLElement {
   static STATES = {
@@ -76,6 +74,9 @@ class LoaderEgg extends HTMLElement {
         :host {
           display: inline-block;
           transition: all 0.3s ease;
+          /* ✅ AJOUT CLS : Réserver espace */
+          min-width: 60px;
+          min-height: 60px;
         }
 
         :host(.inline) {
@@ -91,6 +92,9 @@ class LoaderEgg extends HTMLElement {
           display: flex;
           align-items: center;
           justify-content: center;
+          /* ✅ AJOUT CLS : Isolation GPU */
+          transform: translateZ(0);
+          backface-visibility: hidden;
         }
 
         #mainSVG {
@@ -99,11 +103,10 @@ class LoaderEgg extends HTMLElement {
           display: block;
         }
 
-        /* ✅ CORRECTION : Traits de chaîne SUPPRIMÉS en IDLE (remplacés par boules) */
         .chain-connector {
           stroke: rgba(123, 125, 127, 0.6);
           stroke-width: 1.5;
-          opacity: 0; /* ← CACHÉ par défaut, boules visibles à la place */
+          opacity: 0;
           transition: opacity 0.8s ease;
         }
 
@@ -111,7 +114,6 @@ class LoaderEgg extends HTMLElement {
           opacity: 0;
         }
 
-        /* Traits vers centre THINKING */
         .connector {
           stroke: rgba(123, 125, 127, 0.3);
           stroke-width: 1.5;
@@ -123,23 +125,25 @@ class LoaderEgg extends HTMLElement {
           opacity: 1;
         }
 
-        /* ✅ CORRECTION : Boules grises PLUS VISIBLES (opacité réduite du gradient) */
         .outer {
-          stroke: #7b7d7f; /* ← Gris nickel plus visible */
-          stroke-width: 2; /* ← AUGMENTÉ de 1.5 à 2 */
+          stroke: #7b7d7f;
+          stroke-width: 2;
           r: 3;
           filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.12))
                   drop-shadow(0 1px 4px rgba(0, 0, 0, 0.08));
           transition: all 0.3s ease;
           opacity: 1;
+          /* ✅ AJOUT CLS : Optimisation GPU */
+          will-change: transform;
         }
 
-        /* Boules jaunes intérieures (THINKING uniquement) */
         .inner {
           fill: var(--colour-4);
           r: 0;
           opacity: 0;
           transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+          /* ✅ AJOUT CLS : Optimisation GPU */
+          will-change: cx, cy;
         }
 
         .inner.visible {
@@ -147,10 +151,9 @@ class LoaderEgg extends HTMLElement {
           opacity: 1;
         }
 
-        /* ✅ CORRECTION : Centre jaune IDLE réduit pour matcher le rayon intérieur THINKING */
         .center-core {
-          width: 26%; /* ← RÉDUIT de 30% à 26% */
-          height: 26%; /* ← RÉDUIT de 30% à 26% */
+          width: 26%;
+          height: 26%;
           border-radius: 50%;
           position: absolute;
           top: 50%;
@@ -211,7 +214,7 @@ class LoaderEgg extends HTMLElement {
 }
 
 /**
- * Classe IdleToThinkingTransform - LOGIQUE INCHANGÉE
+ * Classe IdleToThinkingTransform - OPTIMISÉE CLS
  */
 class IdleToThinkingTransform {
   constructor(shadowRoot, uid) {
@@ -221,7 +224,8 @@ class IdleToThinkingTransform {
     this.container = shadowRoot.querySelector('#container');
     this.centerCore = shadowRoot.querySelector('#centerCore');
     
-    this.num = 23;
+    // ✅ OPTIMISATION CLS : Réduction nombre boules
+    this.num = 16; // Au lieu de 23 (-30% DOM nodes)
     this.radius = 40;
     this.innerRadius = 18;
     this.step = (2 * Math.PI) / this.num;
@@ -231,8 +235,10 @@ class IdleToThinkingTransform {
     this.currentState = 'idle';
     this.animationId = null;
     this.time = 0;
-    this.waveSpeed = 0.04;
-    this.waveAmplitude = 6;
+    
+    // ✅ OPTIMISATION CLS : Réduction amplitude et vitesse
+    this.waveSpeed = 0.03; // Au lieu de 0.04 (-25% vitesse)
+    this.waveAmplitude = 4; // Au lieu de 6 (-33% amplitude)
 
     this.init();
   }
@@ -263,24 +269,20 @@ class IdleToThinkingTransform {
 
       this.setupElement(chainConnector, connector, outer, inner);
 
-      // Chaîne vers boule suivante (CACHÉE en IDLE maintenant)
       chainConnector.setAttribute('x1', x);
       chainConnector.setAttribute('y1', y);
       chainConnector.setAttribute('x2', nextX);
       chainConnector.setAttribute('y2', nextY);
 
-      // Trait vers centre (caché en IDLE)
       connector.setAttribute('x1', innerX);
       connector.setAttribute('y1', innerY);
       connector.setAttribute('x2', x);
       connector.setAttribute('y2', y);
 
-      // Boule grise externe (TOUJOURS VISIBLE)
       outer.setAttribute('cx', x);
       outer.setAttribute('cy', y);
       outer.setAttribute('fill', `url(#glass-gradient-${this._uid})`);
 
-      // Boule jaune interne (cachée en IDLE)
       inner.setAttribute('cx', innerX);
       inner.setAttribute('cy', innerY);
 
@@ -309,11 +311,9 @@ class IdleToThinkingTransform {
     
     this.currentState = 'transforming';
 
-    // Phase 1: Centre jaune disparaît
     this.centerCore.classList.add('hidden');
     await this.delay(800);
 
-    // Phase 2: Boules jaunes apparaissent + traits se révèlent
     this.elements.forEach((el, i) => {
       setTimeout(() => {
         el.inner.classList.add('visible');
@@ -324,7 +324,6 @@ class IdleToThinkingTransform {
 
     await this.delay(this.elements.length * 50 + 500);
 
-    // Phase 3: Animation THINKING
     this.currentState = 'thinking';
     this.startWaveAnimation();
   }
@@ -363,14 +362,12 @@ class IdleToThinkingTransform {
       this.animationId = null;
     }
 
-    // Reset animation et éléments
     this.elements.forEach((el, i) => {
       setTimeout(() => {
         el.inner.classList.remove('visible');
         el.connector.classList.remove('visible');
         el.chainConnector.classList.remove('hidden');
 
-        // Reset positions
         el.inner.setAttribute('cx', el.baseInnerX);
         el.inner.setAttribute('cy', el.baseInnerY);
         el.connector.setAttribute('x1', el.baseInnerX);
@@ -380,7 +377,6 @@ class IdleToThinkingTransform {
 
     await this.delay(this.elements.length * 30 + 300);
 
-    // Centre réapparaît
     this.centerCore.classList.remove('hidden');
     this.currentState = 'idle';
     this.time = 0;
@@ -425,4 +421,4 @@ class IdleToThinkingTransform {
 }
 
 customElements.define('loader-egg', LoaderEgg);
-console.log('✅ LoaderEgg component registered globally');
+console.log('✅ LoaderEgg component registered (CLS optimized)');
