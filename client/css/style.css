@@ -736,16 +736,18 @@ h3 {
 }
 
 .message:last-child {
-  animation: fadeInUp 0.6s ease;
+  animation: fadeInUp 0.4s var(--transition-normal);
   margin-bottom: 20px;
 }
 
 /* ========== ANIMATIONS CONSOLIDÉES ========== */
+/* Animation réutilisable optimisée */
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(8px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -756,7 +758,7 @@ h3 {
 .loader-message {
   padding: 12px 0;
   margin-bottom: 8px;
-  animation: fadeInUp 0.3s ease;
+  animation: fadeInUp 0.3s var(--transition-normal);
 }
 
 .loader-container-message {
@@ -797,7 +799,7 @@ h3 {
   display: flex;
   align-items: flex-start;
   padding: 8px 0;
-  animation: fadeInDown 0.4s ease;
+  animation: fadeInDown 0.4s var(--transition-normal);
   min-height: 40px;
   opacity: 1;
   /* ✅ Toujours visible */
@@ -815,12 +817,13 @@ h3 {
   /* ← IMPORTANT pour éviter inline issues */
 }
 
-/* Animation d'apparition douce */
+/* Animation d'apparition depuis le haut */
 @keyframes fadeInDown {
   from {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: translateY(-8px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -2095,7 +2098,7 @@ a:-webkit-any-link {
   min-height: 70px;
   width: 240px;
   flex-shrink: 0;
-  animation: 0.4s ease-out fadeInUp;
+  animation: fadeInUp 0.4s var(--transition-normal);
 
   /* Effet de profondeur avec pseudo-élément */
   position: relative;
@@ -3052,12 +3055,13 @@ body.sidebar-open .modern-chat-container {
   }
 }
 
-/* Animation slide depuis la gauche */
+/* Animation depuis la gauche */
 @keyframes fadeInLeft {
   from {
     opacity: 0;
-    transform: translateX(-20px);
+    transform: translateX(-16px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -3065,7 +3069,7 @@ body.sidebar-open .modern-chat-container {
 }
 
 .nav-item {
-  animation: fadeInLeft 0.3s ease;
+  animation: fadeInLeft 0.3s var(--transition-normal);
 }
 
 .nav-item:nth-child(1) {
