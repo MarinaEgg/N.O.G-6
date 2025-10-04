@@ -138,16 +138,18 @@ class ConversationManager {
                         if (eventData === "[DONE]") {
                             await processPendingText();
 
-                            // ✅ MODIFIER : NE PAS supprimer le loader, juste le passer en IDLE
-                            const loaderEgg = document.getElementById(`loader-egg-${window.token}`);
-                            if (loaderEgg) {
-                                loaderEgg.setState('idle'); // ← Retour en mode IDLE (pas de suppression)
-                                console.log('🥚 Loader passé en mode IDLE'); // ← Debug
-                            }
-
                             await writeNoRAGConversation(text, message, links);
+                            
+                            // ✅ SI RAG : Ajouter les vidéos AVANT de passer le loader en IDLE
                             if (links.length !== 0) {
                                 await writeRAGConversation(links, text, language);
+                            }
+
+                            // ✅ MAINTENANT passer le loader en IDLE (après tout le contenu)
+                            const loaderEgg = document.getElementById(`loader-egg-${window.token}`);
+                            if (loaderEgg) {
+                                loaderEgg.setState('idle');
+                                console.log('🥚 Loader passé en mode IDLE après tout le contenu');
                             }
 
                             return;
@@ -155,12 +157,10 @@ class ConversationManager {
 
                         const dataObject = JSON.parse(eventData);
 
-                        // ✅ GARDER LE LOADER EN THINKING - NE RIEN FAIRE
                         if (links.length === 0) {
                             links = dataObject.metadata.links;
                         }
 
-                        // ✅ Ajouter badge iManage si nécessaire
                         if (links.length !== 0) {
                             this.addImanageBadge();
                         }
@@ -168,7 +168,6 @@ class ConversationManager {
                         language = dataObject.metadata.language;
                         try {
                             if (dataObject.response) {
-                                // Le loader reste en THINKING pendant tout le streaming
                                 if (!hasContent) {
                                     hasContent = true;
                                 }
@@ -184,11 +183,10 @@ class ConversationManager {
 
             await window.storageManager.addMessage(window.conversation_id, "user", user_image, message);
         } catch (e) {
-            // ✅ AJOUTER : En cas d'erreur, aussi retourner en IDLE
             const loaderEgg = document.getElementById(`loader-egg-${window.token}`);
             if (loaderEgg) {
                 loaderEgg.setState('idle');
-                console.log('🥚 Loader passé en mode IDLE (erreur)'); // ← Debug
+                console.log('🥚 Loader passé en mode IDLE (erreur)');
             }
 
             await window.storageManager.addMessage(window.conversation_id, "user", user_image, message);
@@ -251,14 +249,13 @@ class ConversationManager {
         messageBox.appendChild(messageDiv);
         messageBox.scrollTop = messageBox.scrollHeight;
 
-        // ✅ AJOUTER : Passer le loader en mode THINKING
         setTimeout(() => {
             const loaderEgg = document.getElementById(`loader-egg-${window.token}`);
             if (loaderEgg) {
-                loaderEgg.setState('thinking'); // ← Démarre l'animation THINKING
-                console.log('🥚 Loader démarré en mode THINKING'); // ← Debug
+                loaderEgg.setState('thinking');
+                console.log('🥚 Loader démarré en mode THINKING');
             }
-        }, 100); // Attendre que le custom element soit connecté
+        }, 100);
 
         return messageDiv;
     }
@@ -268,7 +265,6 @@ class ConversationManager {
         const loaderElement = document.getElementById(loaderId);
 
         if (loaderElement) {
-            // Animation de sortie
             loaderElement.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
             loaderElement.style.opacity = '0';
             loaderElement.style.transform = 'translateY(-10px)';
@@ -277,9 +273,6 @@ class ConversationManager {
                 loaderElement.remove();
             }, 300);
         }
-
-        // Le contenu est déjà visible dans la nouvelle structure
-        // Plus besoin de l'afficher explicitement
     }
 
     addImanageBadge() {
@@ -291,7 +284,7 @@ class ConversationManager {
 
             if (actionsEl && !actionsEl.querySelector('.source-badge')) {
                 const badge = document.createElement('img');
-                badge.src = '/assets/img/imanage-work.webp'; // ✅ CORRIGÉ
+                badge.src = '/assets/img/imanage-work.webp';
                 badge.className = 'source-badge';
                 badge.alt = 'iManage source';
                 badge.style.width = '20px';
