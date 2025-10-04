@@ -1276,11 +1276,12 @@ h3 {
   transition: none; /* ✅ Pas d'animation de sortie */
 }
 
-/* Taille du loader */
+/* Taille ajustée du loader dans les messages */
 .streaming-loader loader-egg {
-  width: 32px !important;
-  height: 32px !important;
+  width: 60px !important; /* ← Cohérent avec LoaderEgg.js */
+  height: 60px !important;
   flex-shrink: 0;
+  display: block; /* ← IMPORTANT pour éviter inline issues */
 }
 
 /* Animation d'apparition douce */
@@ -1315,6 +1316,15 @@ h3 {
 .streaming-loader loader-egg[data-state="idle"] {
   /* Loader reste identique mais repos */
   filter: brightness(1);
+}
+
+/* Message vidéo sans avatar */
+.message-assistant.video-message {
+  padding-left: 0; /* ← Pas de padding pour l'avatar absent */
+}
+
+.message-assistant.video-message .content {
+  margin-left: 0; /* ← Pas de marge pour l'avatar absent */
 }
 
 .message-user {
