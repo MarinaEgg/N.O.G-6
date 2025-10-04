@@ -26,6 +26,7 @@ class ConversationManager {
                     contentDiv.appendChild(existingLoader);
 
                     console.log('🥚 Loader déplacé sous le nouveau message');
+                    console.log('🥚 DEBUG - Loaders dans DOM:', document.querySelectorAll('.streaming-loader').length);
                     return existingLoader.querySelector('loader-egg');
                 }
             }
@@ -46,6 +47,7 @@ class ConversationManager {
         }
 
         console.log('🥚 Nouveau loader créé');
+        console.log('🥚 DEBUG - Loaders dans DOM:', document.querySelectorAll('.streaming-loader').length);
         return loaderDiv.querySelector('loader-egg');
     }
 
@@ -186,6 +188,7 @@ class ConversationManager {
                             // ✅ Chercher le loader unique dans tout le DOM (pas seulement ce message)
                             const loaderEgg = this.messageBox.querySelector('.streaming-loader loader-egg');
                             if (loaderEgg) {
+                                console.log('🥚 DEBUG - État avant IDLE:', loaderEgg.currentState);
                                 loaderEgg.setState('idle');
                                 console.log('🥚 Loader passé en IDLE');
                             }
@@ -232,6 +235,7 @@ class ConversationManager {
             // ✅ Chercher le loader unique dans tout le DOM (pas seulement ce message)
             const loaderEgg = this.messageBox.querySelector('.streaming-loader loader-egg');
             if (loaderEgg) {
+                console.log('🥚 DEBUG - État avant IDLE:', loaderEgg.currentState);
                 loaderEgg.setState('idle');
                 console.log('🥚 Loader passé en mode IDLE (erreur)');
             }
