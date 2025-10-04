@@ -51,6 +51,12 @@
   --transition-slow: 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
+/* ========== CLASSES UTILITAIRES ========== */
+/* Factoriser les transitions communes */
+.hoverable {
+  transition: all var(--transition-fast);
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -368,7 +374,7 @@ body.sidebar-open .conversations {
   justify-content: center;
   align-items: center;
   gap: 4px;
-  transition: all 0.3s ease;
+  transition: all var(--transition-normal);
   -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -1583,13 +1589,8 @@ a:-webkit-any-link {
 }
 
 .hljs-copy-button:hover {
-  transform: translateX(0) translateY(-2px);
+  transform: translateY(-2px);
   background: rgba(252, 233, 107, 0.25);
-  border-color: rgba(252, 233, 107, 0.6);
-  box-shadow:
-    0 8px 24px rgba(252, 233, 107, 0.15),
-    0 4px 8px rgba(0, 0, 0, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
 .hljs-copy-button:active {
@@ -1829,7 +1830,7 @@ a:-webkit-any-link {
   --chat-input-max-height: 200px;
   --chat-container-min-height: 60px;
   --chat-height-offset: 0px;
-  --chat-transition: all 0.2s ease;
+  --chat-transition: all var(--transition-fast);
 }
 
 /* Conteneur principal de l'input utilisateur */
@@ -2135,16 +2136,8 @@ a:-webkit-any-link {
 }
 
 .video-source-bubble:hover {
-  /* Effet hover avec plus de transparence et d'élévation */
   background: rgba(255, 255, 255, 0.98);
-  transform: translateY(-4px) scale(1.02);
-  box-shadow:
-    0 16px 48px rgba(0, 0, 0, 0.12),
-    0 4px 16px rgba(0, 0, 0, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8);
-  border-color: rgba(255, 255, 255, 0.6);
-  -webkit-backdrop-filter: blur(25px);
-  backdrop-filter: blur(25px);
+  transform: translateY(-2px);
 }
 
 .video-source-title {
@@ -2402,7 +2395,7 @@ body.sidebar-open .modern-chat-container {
   border: none;
   border-radius: var(--border-radius-md);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
   flex-shrink: 0;
   align-self: center;
 }
@@ -2472,15 +2465,13 @@ body.sidebar-open .modern-chat-container {
   gap: 12px;
   padding: 12px 16px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
   color: var(--text-primary);
   text-decoration: none;
 }
 
 .dropdown-item:hover {
   background: rgba(255, 255, 255, 0.8);
-  -webkit-backdrop-filter: blur(20px);
-  backdrop-filter: blur(20px);
 }
 
 .dropdown-item i {
@@ -2513,7 +2504,7 @@ body.sidebar-open .modern-chat-container {
   padding: 16px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
 }
 
 .connector-item:last-child {
@@ -2522,8 +2513,6 @@ body.sidebar-open .modern-chat-container {
 
 .connector-item:hover {
   background: rgba(255, 255, 255, 0.8);
-  -webkit-backdrop-filter: blur(20px);
-  backdrop-filter: blur(20px);
 }
 
 .connector-header {
@@ -2688,14 +2677,13 @@ body.sidebar-open .modern-chat-container {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .new-conversation-btn:hover {
-  transform: scale(1.05);
   background: #1a1a1a;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: scale(1.02);
 }
 
 .new-conversation-btn:active {
@@ -2719,7 +2707,7 @@ body.sidebar-open .modern-chat-container {
   gap: 12px;
   padding: 12px 0;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
   border-radius: var(--border-radius-md);
   margin-bottom: 8px;
   position: relative;
@@ -2807,7 +2795,7 @@ body.sidebar-open .modern-chat-container {
   cursor: pointer;
   padding: 6px;
   border-radius: 4px;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
 }
 
 .recents-header i:hover {
@@ -2830,7 +2818,7 @@ body.sidebar-open .modern-chat-container {
   padding: 8px 12px;
   border-radius: 6px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
 }
 
 .conversation-item:hover {
@@ -2870,7 +2858,7 @@ body.sidebar-open .modern-chat-container {
   border-radius: 4px;
   color: rgba(47, 47, 46, 0.5);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
   font-size: 12px;
 }
 
@@ -2888,7 +2876,7 @@ body.sidebar-open .modern-chat-container {
   align-items: center;
   justify-content: space-between;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
   background: rgba(255, 255, 255, 0.3);
   margin-top: auto;
 }
@@ -2950,7 +2938,7 @@ body.sidebar-open .modern-chat-container {
   opacity: 0;
   visibility: hidden;
   transform: translateY(10px);
-  transition: all 0.3s ease;
+  transition: all var(--transition-normal);
   z-index: 1000;
 }
 
@@ -2999,7 +2987,7 @@ body.sidebar-open .modern-chat-container {
   gap: 12px;
   padding: 12px 16px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
   font-family: var(--font-family);
 }
 
@@ -3216,7 +3204,7 @@ body.sidebar-open .modern-chat-container {
   align-items: center;
   justify-content: center;
   font-size: 16px;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
 }
 
 .sidebar-toggle-external:hover {
