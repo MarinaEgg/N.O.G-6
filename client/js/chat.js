@@ -254,8 +254,7 @@ const load_conversation = async (conversation_id) => {
       videoSourcesHTML += '</div>';
 
       message_box.innerHTML += `
-        <div class="message message-assistant">
-          ${img}
+        <div class="message message-assistant video-message">
           <div class="content">
             ${videoSourcesHTML}
           </div>
@@ -370,8 +369,7 @@ async function writeRAGConversation(links, text, language) {
 
   // Ajouter le message avec les bulles vidéo
   message_box.innerHTML += `
-    <div class="message message-assistant">
-      ${video_image}
+    <div class="message message-assistant video-message">
       <div class="content ${class_last_message_assistant}">
         ${videoSourcesContainer.outerHTML}
       </div>
