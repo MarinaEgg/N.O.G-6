@@ -71,19 +71,23 @@ class ConversationManager {
         const loaderDiv = document.createElement('div');
         loaderDiv.className = 'streaming-loader';
         loaderDiv.id = `loader-${this.currentMessageId}`;
-        loaderDiv.innerHTML = '<loader-egg id="loader-egg-${this.currentMessageId}" class="inline"></loader-egg>';
+        // ✅ CRÉER LE CUSTOM ELEMENT DIRECTEMENT (pas innerHTML)
+        const loaderEgg = document.createElement('loader-egg');
+        loaderEgg.id = `loader-egg-${this.currentMessageId}`;
+        loaderEgg.className = 'inline';
+        loaderDiv.appendChild(loaderEgg);
 
         const lastMessage = messagesContainer.querySelector(`#message-${this.currentMessageId}`);
         if (lastMessage) {
-            const contentDiv = lastMessage.closest('.content');
+            const contentDiv = lastMessage.querySelector('.content');
             if (contentDiv) {
                 contentDiv.appendChild(loaderDiv);
+                console.log('🥚 Nouveau loader créé et ajouté');
+                console.log('🥚 DEBUG - Loaders dans DOM:', document.querySelectorAll('.streaming-loader').length);
+
+                return loaderEgg;
             }
         }
-
-        console.log('🥚 Nouveau loader créé');
-        console.log('🥚 DEBUG - Loaders dans DOM:', document.querySelectorAll('.streaming-loader').length);
-        return loaderDiv.querySelector('loader-egg');
     }
 
     async sendMessage(message) {
@@ -367,7 +371,7 @@ class ConversationManager {
 
             if (actionsEl && !actionsEl.querySelector('.source-badge')) {
                 const badge = document.createElement('img');
-                badge.src = '/assets/img/imanage_logo_small.png';
+                badge.src = '/assets/img/imanage-work.webp'; // ✅ CORRIGÉ
                 badge.className = 'source-badge';
                 badge.alt = 'iManage source';
                 badge.style.width = '20px';
