@@ -123,10 +123,14 @@ class ConversationManager {
             let language = "fr";
             let hasContent = false;
 
+            // ✅ LECTURE DU STREAM AVEC GESTION PROPRE DE [DONE]
             while (true) {
                 const { value, done } = await reader.read();
 
-                if (done) break;
+                if (done) {
+                    console.log('🎯 Stream terminé naturellement (done=true)');
+                    break;
+                }
 
                 buffer += decoder.decode(value, { stream: true });
                 const lines = buffer.split("\n");
@@ -135,7 +139,9 @@ class ConversationManager {
                 for (const line of lines) {
                     if (line.startsWith("data: ")) {
                         const eventData = line.slice(6).trim();
+                        
                         if (eventData === "[DONE]") {
+                            console.log('🎯 Received [DONE] signal');
                             await processPendingText();
 
                             await writeNoRAGConversation(text, message, links);
@@ -152,7 +158,11 @@ class ConversationManager {
                                 console.log('🥚 Loader passé en mode IDLE après tout le contenu');
                             }
 
-                            return;
+                            // ✅ SORTIR DU WHILE PROPREMENT
+                            // On ne peut pas faire break ici car on est dans une boucle for imbriquée
+                            // On va donc terminer le reader et sortir
+                            await reader.cancel();
+                            return; // Sortir de sendMessage complètement
                         }
 
                         const dataObject = JSON.parse(eventData);
@@ -181,8 +191,25 @@ class ConversationManager {
                 }
             }
 
+            // ✅ SI LE STREAM SE TERMINE SANS [DONE] (cas rare)
+            console.log('⚠️ Stream terminé sans [DONE]');
+            await processPendingText();
+            await writeNoRAGConversation(text, message, links);
+            
+            if (links.length !== 0) {
+                await writeRAGConversation(links, text, language);
+            }
+
+            const loaderEgg = document.getElementById(`loader-egg-${window.token}`);
+            if (loaderEgg) {
+                loaderEgg.setState('idle');
+            }
+
             await window.storageManager.addMessage(window.conversation_id, "user", user_image, message);
+
         } catch (e) {
+            console.error('❌ Erreur dans sendMessage:', e);
+            
             const loaderEgg = document.getElementById(`loader-egg-${window.token}`);
             if (loaderEgg) {
                 loaderEgg.setState('idle');
