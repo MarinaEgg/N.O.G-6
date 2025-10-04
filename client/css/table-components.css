@@ -1,0 +1,216 @@
+/* ========================================
+   TABLE STYLES - Modern Glassmorphism
+   ======================================== */
+
+/* Variables pour faciliter la maintenance */
+:root {
+  --table-radius: 16px;
+  --table-padding: 12px 16px;
+  --table-border: 1px solid rgba(255, 255, 255, 0.2);
+  --table-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  --table-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ========== CONTENEUR DU TABLEAU ========== */
+.table-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 24px auto;
+  overflow-x: auto;
+  border-radius: var(--table-radius);
+}
+
+/* ========== TABLEAU PRINCIPAL ========== */
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-family: "Inter", sans-serif;
+  font-size: 15px;
+  
+  /* Effet glass */
+  background: linear-gradient(135deg,
+    rgba(255, 255, 255, 0.1),
+    rgba(255, 255, 255, 0.25));
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: var(--table-radius);
+  border: var(--table-border);
+  box-shadow: var(--table-shadow);
+  overflow: hidden;
+}
+
+/* ========== EN-TÊTE ========== */
+thead {
+  background: linear-gradient(90deg,
+    rgba(255, 255, 255, 0.15),
+    rgba(255, 255, 255, 0.3),
+    rgba(255, 255, 255, 0.15));
+}
+
+th {
+  padding: var(--table-padding);
+  text-align: left;
+  font-weight: 600;
+  font-size: 13px;
+  color: #2f2f2e;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+  position: relative;
+}
+
+th:first-child {
+  border-top-left-radius: var(--table-radius);
+}
+
+th:last-child {
+  border-top-right-radius: var(--table-radius);
+}
+
+/* Séparateurs entre colonnes */
+th:not(:last-child)::after,
+td:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 25%;
+  height: 50%;
+  width: 1px;
+  background: linear-gradient(180deg,
+    transparent,
+    rgba(0, 0, 0, 0.08) 50%,
+    transparent);
+}
+
+/* ========== CORPS DU TABLEAU ========== */
+tbody tr {
+  transition: var(--table-transition);
+  cursor: pointer;
+  position: relative;
+}
+
+/* Alternance de lignes */
+tbody tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+tbody tr:last-child td:first-child {
+  border-bottom-left-radius: var(--table-radius);
+}
+
+tbody tr:last-child td:last-child {
+  border-bottom-right-radius: var(--table-radius);
+}
+
+/* ========== CELLULES ========== */
+td {
+  padding: var(--table-padding);
+  color: #2f2f2e;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.5;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  transition: var(--table-transition);
+  position: relative;
+}
+
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ========== EFFET HOVER SUR LES LIGNES ========== */
+tbody tr:hover {
+  background: linear-gradient(135deg,
+    rgba(255, 255, 255, 0.85),
+    rgba(255, 255, 255, 0.95));
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15),
+              0 4px 8px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  border-radius: 8px;
+}
+
+tbody tr:hover td {
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+/* Flou sur les autres lignes */
+tbody:hover tr:not(:hover) {
+  opacity: 0.5;
+  filter: blur(1px);
+  transform: scale(0.98);
+}
+
+/* ========== EFFET CLIC ========== */
+tbody tr:active {
+  transform: translateY(0) scale(1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2),
+              inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* ========== UTILITAIRES ========== */
+/* Cellules numériques */
+.numeric {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Cellules centrées */
+.center {
+  text-align: center;
+}
+
+/* Contenu long */
+.long-content {
+  max-width: 200px;
+  overflow-wrap: break-word;
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 990px) {
+  table {
+    font-size: 14px;
+  }
+  
+  th, td {
+    padding: 10px 12px;
+  }
+  
+  th {
+    font-size: 12px;
+  }
+  
+  tbody tr:hover {
+    transform: scale(1.01);
+  }
+}
+
+@media (max-width: 640px) {
+  .table-container {
+    margin: 16px 0;
+  }
+  
+  table {
+    font-size: 13px;
+  }
+  
+  th, td {
+    padding: 8px 10px;
+  }
+}
+
+/* ========== ACCESSIBILITÉ ========== */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* Focus visible pour navigation clavier */
+tbody tr:focus-visible {
+  outline: 2px solid #2f2f2e;
+  outline-offset: 2px;
+}
