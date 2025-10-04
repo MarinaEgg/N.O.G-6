@@ -1,6 +1,8 @@
 /**
  * LoaderEgg - Avatar intelligent SVG avec animation IDLE ↔ THINKING
  * Gère les états et positions dynamiques selon le contexte
+ * 
+ * VERSION : CORRECTIONS VISUELLES IDLE (SANS TOUCHER À LA LOGIQUE)
  */
 class LoaderEgg extends HTMLElement {
   static STATES = {
@@ -10,8 +12,8 @@ class LoaderEgg extends HTMLElement {
   };
 
   static POSITIONS = {
-    INLINE: 'inline',   // Dans message (avatar)
-    FLOATING: 'floating' // Sous messages (standby)
+    INLINE: 'inline',
+    FLOATING: 'floating'
   };
 
   constructor() {
@@ -20,9 +22,8 @@ class LoaderEgg extends HTMLElement {
     this.currentState = LoaderEgg.STATES.IDLE;
     this.currentPosition = LoaderEgg.POSITIONS.INLINE;
     this.transformer = null;
-    this._uid = Math.random().toString(36).substr(2, 9); // UID unique pour éviter conflits
+    this._uid = Math.random().toString(36).substr(2, 9);
     
-    // ✅ AJOUTER : Initialiser l'attribut data-state
     this.setAttribute('data-state', 'idle');
   }
 
@@ -37,7 +38,6 @@ class LoaderEgg extends HTMLElement {
     }
   }
 
-  // API publique
   setState(newState) {
     if (!Object.values(LoaderEgg.STATES).includes(newState)) {
       console.warn(`État invalide: ${newState}`);
@@ -45,8 +45,6 @@ class LoaderEgg extends HTMLElement {
     }
 
     this.currentState = newState;
-    
-    // ✅ AJOUTER : Mettre à jour l'attribut data-state pour le CSS
     this.setAttribute('data-state', newState);
     
     if (newState === LoaderEgg.STATES.THINKING) {
@@ -61,7 +59,6 @@ class LoaderEgg extends HTMLElement {
   }
 
   setPosition(position) {
-    // Position simplifiée - seulement inline maintenant
     this.currentPosition = LoaderEgg.POSITIONS.INLINE;
     this.classList.add('inline');
   }
@@ -73,7 +70,7 @@ class LoaderEgg extends HTMLElement {
           --colour-1: #ffffff;
           --colour-4: #f9e479;
           --glass-bg: rgba(255, 255, 255, 0.85);
-          --glass-border: #7b7d7f; /* ← GRIS NICKEL couleur directe comme dans le prototype */
+          --glass-border: #7b7d7f;
         }
 
         :host {
@@ -81,14 +78,11 @@ class LoaderEgg extends HTMLElement {
           transition: all 0.3s ease;
         }
 
-        /* Position inline (avatar dans message) */
         :host(.inline) {
-          width: 60px; /* ← AUGMENTÉ de 40px à 60px */
-          height: 60px; /* ← AUGMENTÉ de 40px à 60px */
+          width: 60px;
+          height: 60px;
           vertical-align: middle;
         }
-
-        /* Position floating supprimée - plus utilisée */
 
         .loader-container {
           width: 100%;
@@ -99,18 +93,17 @@ class LoaderEgg extends HTMLElement {
           justify-content: center;
         }
 
-        /* AJOUT : Forcer dimensions SVG */
         #mainSVG {
           width: 100%;
           height: 100%;
-          display: block; /* IMPORTANT */
+          display: block;
         }
 
-        /* Traits de chaîne IDLE */
+        /* ✅ CORRECTION : Traits de chaîne SUPPRIMÉS en IDLE (remplacés par boules) */
         .chain-connector {
-          stroke: rgba(123, 125, 127, 0.6); /* ← Opacité intégrée */
-          stroke-width: 1.5; /* ← AUGMENTÉ de 1 à 1.5 */
-          opacity: 1; /* ← Géré par la couleur maintenant */
+          stroke: rgba(123, 125, 127, 0.6);
+          stroke-width: 1.5;
+          opacity: 0; /* ← CACHÉ par défaut, boules visibles à la place */
           transition: opacity 0.8s ease;
         }
 
@@ -120,28 +113,28 @@ class LoaderEgg extends HTMLElement {
 
         /* Traits vers centre THINKING */
         .connector {
-          stroke: rgba(123, 125, 127, 0.3); /* ← Plus subtil pour THINKING */
-          stroke-width: 1.5; /* ← AUGMENTÉ de 1 à 1.5 */
+          stroke: rgba(123, 125, 127, 0.3);
+          stroke-width: 1.5;
           opacity: 0;
           transition: opacity 0.8s ease;
         }
 
         .connector.visible {
-          opacity: 1; /* ← AUGMENTÉ de 0.8 à 1 */
+          opacity: 1;
         }
 
-        /* Boules grises avec effet glass et contour gris nickel */
+        /* ✅ CORRECTION : Boules grises TOUJOURS VISIBLES en IDLE */
         .outer {
-          /* fill appliqué en JavaScript avec UID correct */
           stroke: var(--glass-border);
-          stroke-width: 1.5; /* ← AUGMENTÉ de 1 à 1.5 */
-          r: 3; /* ← AUGMENTÉ de 2 à 3 */
+          stroke-width: 1.5;
+          r: 3;
           filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.12))
                   drop-shadow(0 1px 4px rgba(0, 0, 0, 0.08));
           transition: all 0.3s ease;
+          opacity: 1; /* ← TOUJOURS VISIBLE */
         }
 
-        /* Boules jaunes intérieures */
+        /* Boules jaunes intérieures (THINKING uniquement) */
         .inner {
           fill: var(--colour-4);
           r: 0;
@@ -150,28 +143,26 @@ class LoaderEgg extends HTMLElement {
         }
 
         .inner.visible {
-          r: 2.5; /* ← AUGMENTÉ de 1.5 à 2.5 */
+          r: 2.5;
           opacity: 1;
         }
 
-        /* CORRECTION : Centre jaune proportionnel au conteneur */
+        /* ✅ CORRECTION : Centre jaune IDLE réduit pour matcher le rayon intérieur THINKING */
         .center-core {
-          width: 30%; /* ← AUGMENTÉ de 24% à 30% */
-          height: 30%; /* ← AUGMENTÉ de 24% à 30% */
+          width: 26%; /* ← RÉDUIT de 30% à 26% */
+          height: 26%; /* ← RÉDUIT de 30% à 26% */
           border-radius: 50%;
           position: absolute;
           top: 50%;
           left: 50%;
           transform: translate(-50%, -50%);
           
-          /* Gradient plus visible */
           background: radial-gradient(circle at 30% 30%,
-                      rgba(249, 228, 121, 1) 0%, /* ← Opacité max */
+                      rgba(249, 228, 121, 1) 0%,
                       rgba(249, 228, 121, 0.9) 40%,
                       rgba(249, 228, 121, 0.75) 100%);
           
-          /* Ombres plus marquées */
-          box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.2), /* ← Plus sombre */
+          box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.2),
                       0 4px 12px rgba(0, 0, 0, 0.15),
                       0 0 0 2px rgba(249, 228, 121, 0.5),
                       0 8px 16px rgba(249, 228, 121, 0.4) inset,
@@ -188,7 +179,6 @@ class LoaderEgg extends HTMLElement {
           transform: translate(-50%, -50%) scale(0.1);
         }
 
-        /* Templates cachés */
         .template {
           display: none;
         }
@@ -196,17 +186,14 @@ class LoaderEgg extends HTMLElement {
 
       <div class="loader-container">
         <svg id="mainSVG" viewBox="0 0 120 120" preserveAspectRatio="xMidYMid meet">
-          <!-- ↑ AJOUTÉ preserveAspectRatio -->
           <defs>
             <radialGradient id="glass-gradient-${this._uid}" cx="0.3" cy="0.3" r="0.8">
-              <!-- ↑ AJOUTÉ uid unique pour éviter conflits entre instances -->
               <stop offset="0%" stop-color="rgba(255, 255, 255, 0.95)"/>
               <stop offset="40%" stop-color="rgba(255, 255, 255, 0.85)"/>
               <stop offset="100%" stop-color="rgba(255, 255, 255, 0.75)"/>
             </radialGradient>
           </defs>
           <g id="container">
-            <!-- Templates -->
             <line class="chain-connector template"></line>
             <line class="connector template"></line>
             <circle class="outer template" fill="url(#glass-gradient-${this._uid})"></circle>
@@ -219,18 +206,17 @@ class LoaderEgg extends HTMLElement {
   }
 
   initTransformer() {
-    // Adapter la classe IdleToThinkingTransform pour Shadow DOM
-    this.transformer = new IdleToThinkingTransform(this.shadowRoot, this._uid); // ← PASSER uid
+    this.transformer = new IdleToThinkingTransform(this.shadowRoot, this._uid);
   }
 }
 
 /**
- * Classe IdleToThinkingTransform adaptée pour Shadow DOM
+ * Classe IdleToThinkingTransform - LOGIQUE INCHANGÉE
  */
 class IdleToThinkingTransform {
-  constructor(shadowRoot, uid) { // ← AJOUTER uid
+  constructor(shadowRoot, uid) {
     this.shadowRoot = shadowRoot;
-    this._uid = uid; // ← STOCKER uid
+    this._uid = uid;
     this.mainSVG = shadowRoot.querySelector('#mainSVG');
     this.container = shadowRoot.querySelector('#container');
     this.centerCore = shadowRoot.querySelector('#centerCore');
@@ -277,7 +263,7 @@ class IdleToThinkingTransform {
 
       this.setupElement(chainConnector, connector, outer, inner);
 
-      // Chaîne vers boule suivante (visible en IDLE)
+      // Chaîne vers boule suivante (CACHÉE en IDLE maintenant)
       chainConnector.setAttribute('x1', x);
       chainConnector.setAttribute('y1', y);
       chainConnector.setAttribute('x2', nextX);
@@ -289,10 +275,10 @@ class IdleToThinkingTransform {
       connector.setAttribute('x2', x);
       connector.setAttribute('y2', y);
 
-      // Boule grise externe
+      // Boule grise externe (TOUJOURS VISIBLE)
       outer.setAttribute('cx', x);
       outer.setAttribute('cy', y);
-      outer.setAttribute('fill', `url(#glass-gradient-${this._uid})`); // ← Application du gradient avec UID correct
+      outer.setAttribute('fill', `url(#glass-gradient-${this._uid})`);
 
       // Boule jaune interne (cachée en IDLE)
       inner.setAttribute('cx', innerX);
@@ -438,9 +424,5 @@ class IdleToThinkingTransform {
   }
 }
 
-// Enregistrer le custom element
 customElements.define('loader-egg', LoaderEgg);
-
-// LoaderEgg est disponible globalement via customElements.define()
-// Accessible dans tout le code via document.createElement('loader-egg')
 console.log('✅ LoaderEgg component registered globally');
