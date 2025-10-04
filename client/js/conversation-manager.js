@@ -2,6 +2,30 @@ class ConversationManager {
     constructor() {
         this.isStreaming = false;
         this.currentController = null;
+        this.messageBox = null; // ← Initialisé à null
+        this.currentMessageId = null;
+
+        // ✅ Attendre que le DOM soit prêt et initialiser messageBox
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => this.initializeDOM());
+        } else {
+            this.initializeDOM();
+        }
+    }
+
+    /**
+     * Initialise les références DOM nécessaires
+     */
+    initializeDOM() {
+        this.messageBox = document.getElementById('messages');
+
+        if (!this.messageBox) {
+            console.error('❌ FATAL: #messages element not found in DOM!');
+            return false;
+        }
+
+        console.log('✅ ConversationManager DOM initialized - messageBox ready');
+        return true;
     }
 
     /**
@@ -9,6 +33,17 @@ class ConversationManager {
      * @returns {HTMLElement} L'élément loader-egg
      */
     manageUniqueLoader() {
+        // ✅ PROTECTION : Vérifier que messageBox existe
+        if (!this.messageBox) {
+            console.error('❌ messageBox undefined dans manageUniqueLoader');
+            this.initializeDOM();
+
+            if (!this.messageBox) {
+                console.error('❌ FATAL: Impossible d\'initialiser messageBox');
+                return null;
+            }
+        }
+
         const messagesContainer = this.messageBox;
 
         // Chercher un loader existant dans tout le DOM
@@ -52,6 +87,16 @@ class ConversationManager {
     }
 
     async sendMessage(message) {
+        // ✅ VÉRIFIER que messageBox est initialisé
+        if (!this.messageBox) {
+            console.error('❌ messageBox not initialized, retrying...');
+            this.initializeDOM();
+
+            if (!this.messageBox) {
+                throw new Error('Cannot send message: messageBox element not found in DOM');
+            }
+        }
+
         if (this.isStreaming) return;
 
         this.isStreaming = true;
@@ -90,6 +135,9 @@ class ConversationManager {
             window.scrollTo(0, 0);
             await new Promise((r) => setTimeout(r, 500));
             window.scrollTo(0, 0);
+
+            // ✅ Générer l'ID du message AVANT createLoadingMessage
+            this.currentMessageId = window.token;
 
             // Créer le message avec loader intégré
             const avatarImage = '<div class="avatar-placeholder"></div>';
