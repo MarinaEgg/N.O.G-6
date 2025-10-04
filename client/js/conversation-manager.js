@@ -4,6 +4,51 @@ class ConversationManager {
         this.currentController = null;
     }
 
+    /**
+     * Gère le loader unique : le crée ou le déplace sous le dernier message
+     * @returns {HTMLElement} L'élément loader-egg
+     */
+    manageUniqueLoader() {
+        const messagesContainer = this.messageBox;
+
+        // Chercher un loader existant dans tout le DOM
+        let existingLoader = messagesContainer.querySelector('.streaming-loader');
+
+        if (existingLoader) {
+            // DÉPLACER le loader existant sous le nouveau message
+            const lastMessage = messagesContainer.querySelector(`#message-${this.currentMessageId}`);
+            if (lastMessage) {
+                const contentDiv = lastMessage.closest('.content');
+                if (contentDiv) {
+                    // Retirer de l'ancien parent
+                    existingLoader.remove();
+                    // Ajouter au nouveau parent
+                    contentDiv.appendChild(existingLoader);
+
+                    console.log('🥚 Loader déplacé sous le nouveau message');
+                    return existingLoader.querySelector('loader-egg');
+                }
+            }
+        }
+
+        // Si pas de loader existant, EN CRÉER UN NOUVEAU
+        const loaderDiv = document.createElement('div');
+        loaderDiv.className = 'streaming-loader';
+        loaderDiv.id = `loader-${this.currentMessageId}`;
+        loaderDiv.innerHTML = '<loader-egg id="loader-egg-${this.currentMessageId}" class="inline"></loader-egg>';
+
+        const lastMessage = messagesContainer.querySelector(`#message-${this.currentMessageId}`);
+        if (lastMessage) {
+            const contentDiv = lastMessage.closest('.content');
+            if (contentDiv) {
+                contentDiv.appendChild(loaderDiv);
+            }
+        }
+
+        console.log('🥚 Nouveau loader créé');
+        return loaderDiv.querySelector('loader-egg');
+    }
+
     async sendMessage(message) {
         if (this.isStreaming) return;
 
@@ -138,11 +183,11 @@ class ConversationManager {
                         if (eventData === "[DONE]") {
                             await processPendingText();
 
-                            // ✅ MODIFIER : NE PAS supprimer le loader, juste le passer en IDLE
-                            const loaderEgg = document.getElementById(`loader-egg-${window.token}`);
+                            // ✅ Chercher le loader unique dans tout le DOM (pas seulement ce message)
+                            const loaderEgg = this.messageBox.querySelector('.streaming-loader loader-egg');
                             if (loaderEgg) {
-                                loaderEgg.setState('idle'); // ← Retour en mode IDLE (pas de suppression)
-                                console.log('🥚 Loader passé en mode IDLE'); // ← Debug
+                                loaderEgg.setState('idle');
+                                console.log('🥚 Loader passé en IDLE');
                             }
 
                             await writeNoRAGConversation(text, message, links);
@@ -184,11 +229,11 @@ class ConversationManager {
 
             await window.storageManager.addMessage(window.conversation_id, "user", user_image, message);
         } catch (e) {
-            // ✅ AJOUTER : En cas d'erreur, aussi retourner en IDLE
-            const loaderEgg = document.getElementById(`loader-egg-${window.token}`);
+            // ✅ Chercher le loader unique dans tout le DOM (pas seulement ce message)
+            const loaderEgg = this.messageBox.querySelector('.streaming-loader loader-egg');
             if (loaderEgg) {
                 loaderEgg.setState('idle');
-                console.log('🥚 Loader passé en mode IDLE (erreur)'); // ← Debug
+                console.log('🥚 Loader passé en mode IDLE (erreur)');
             }
 
             await window.storageManager.addMessage(window.conversation_id, "user", user_image, message);
@@ -241,46 +286,25 @@ class ConversationManager {
             ${avatarImage}
             <div class="content streaming-content">
                 <div id="imanage_${window.token}" class="assistant-content"></div>
-                <div class="streaming-loader" id="loader-${window.token}">
-                    <loader-egg id="loader-egg-${window.token}" class="inline"></loader-egg>
-                </div>
             </div>
         `;
 
-        const messageBox = document.getElementById('messages');
-        messageBox.appendChild(messageDiv);
-        messageBox.scrollTop = messageBox.scrollHeight;
+        this.messageBox.appendChild(messageDiv);
+        this.messageBox.scrollTop = this.messageBox.scrollHeight;
 
-        // ✅ AJOUTER : Passer le loader en mode THINKING
+        // ✅ NOUVEAU : Gérer le loader unique
         setTimeout(() => {
-            const loaderEgg = document.getElementById(`loader-egg-${window.token}`);
+            const loaderEgg = this.manageUniqueLoader();
             if (loaderEgg) {
-                loaderEgg.setState('thinking'); // ← Démarre l'animation THINKING
-                console.log('🥚 Loader démarré en mode THINKING'); // ← Debug
+                loaderEgg.setState('thinking');
+                console.log('🥚 Loader passé en THINKING');
             }
-        }, 100); // Attendre que le custom element soit connecté
+        }, 100);
 
         return messageDiv;
     }
 
-    removeLoadingMessage() {
-        const loaderId = `loader-${window.token}`;
-        const loaderElement = document.getElementById(loaderId);
-
-        if (loaderElement) {
-            // Animation de sortie
-            loaderElement.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-            loaderElement.style.opacity = '0';
-            loaderElement.style.transform = 'translateY(-10px)';
-
-            setTimeout(() => {
-                loaderElement.remove();
-            }, 300);
-        }
-
-        // Le contenu est déjà visible dans la nouvelle structure
-        // Plus besoin de l'afficher explicitement
-    }
+    // removeLoadingMessage() supprimée - le loader reste permanent
 
     addImanageBadge() {
         const messageEl = document.querySelector('.message:last-child');
