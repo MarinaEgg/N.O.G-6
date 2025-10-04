@@ -406,13 +406,16 @@ async function writeRAGConversation(links, text, language) {
     class_last_message_assistant
   )[0];
 
-  const scrolly = window.getScrollY(last_message_assistant);
-  last_message_assistant.classList.remove(class_last_message_assistant);
+  // ✅ CORRECTION : getScrollY() non nécessaire avec le nouveau système
+  // La classe last-message-assistant n'est plus utilisée
+  if (last_message_assistant) {
+    last_message_assistant.classList.remove(class_last_message_assistant);
+  }
 
   const links_and_language = {
     links: links,
     language: language,
-    scrolly: scrolly,
+    scrolly: 0, // Valeur par défaut, non utilisée
     titles: titles,
   };
 
