@@ -347,7 +347,6 @@ async function writeRAGConversation(links, text, language) {
     hljs.highlightElement(el);
   });
 
-  // CORRECTION: Utiliser window.getYouTubeID depuis utils.js
   const video_ids = links.map((link) => window.getYouTubeID(link));
 
   const titles = await Promise.all(
@@ -367,18 +366,33 @@ async function writeRAGConversation(links, text, language) {
     videoSourcesContainer.appendChild(bubble);
   }
 
-  // Ajouter le message avec les bulles vidéo
-  message_box.innerHTML += `
-    <div class="message message-assistant video-message">
-      <div class="content ${class_last_message_assistant}">
-        ${videoSourcesContainer.outerHTML}
-      </div>
-    </div>`;
+  // ✅ TROUVER LE DERNIER MESSAGE ASSISTANT
+  const lastMessage = document.querySelector('#message-' + window.token);
+  if (lastMessage) {
+    const contentDiv = lastMessage.querySelector('.content');
+    if (contentDiv) {
+      // ✅ RÉCUPÉRER LE LOADER EXISTANT
+      const existingLoader = contentDiv.querySelector('.streaming-loader');
+      
+      // ✅ RETIRER TEMPORAIREMENT LE LOADER
+      if (existingLoader) {
+        existingLoader.remove();
+      }
+      
+      // ✅ AJOUTER LES VIDÉOS
+      contentDiv.appendChild(videoSourcesContainer);
+      
+      // ✅ RAJOUTER LE LOADER À LA FIN
+      if (existingLoader) {
+        contentDiv.appendChild(existingLoader);
+      }
+    }
+  }
 
   message_box.scrollTop = message_box.scrollHeight;
 
   // Réattacher les événements de clic après l'ajout au DOM
-  const addedBubbles = message_box.querySelectorAll('.video-source-bubble');
+  const addedBubbles = videoSourcesContainer.querySelectorAll('.video-source-bubble');
   addedBubbles.forEach((bubble, index) => {
     bubble.addEventListener('click', function (e) {
       e.preventDefault();
@@ -392,7 +406,6 @@ async function writeRAGConversation(links, text, language) {
     class_last_message_assistant
   )[0];
 
-  // CORRECTION: Utiliser window.getScrollY depuis utils.js
   const scrolly = window.getScrollY(last_message_assistant);
   last_message_assistant.classList.remove(class_last_message_assistant);
 
