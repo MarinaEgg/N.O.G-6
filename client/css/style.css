@@ -546,12 +546,7 @@ body.sidebar-open {
   border: 1px solid var(--blur-border);
 }
 
-.center {
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
-  width: 50%;
-}
+
 
 .conversations {
   margin: 0;
@@ -618,12 +613,7 @@ h3 {
   color: #2f2f2e;
 }
 
-.logo {
-  width: 120px;
-  margin-top: auto;
-  display: none;
-  /* SUPPRESSION DU LOGO */
-}
+
 
 .conversation {
   width: 100%;
