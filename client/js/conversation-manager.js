@@ -2,121 +2,9 @@ class ConversationManager {
     constructor() {
         this.isStreaming = false;
         this.currentController = null;
-        this.messageBox = null;
-        this.currentMessageId = null;
-
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => this.initializeDOM());
-        } else {
-            this.initializeDOM();
-        }
-    }
-
-    initializeDOM() {
-        this.messageBox = document.getElementById('messages');
-
-        if (!this.messageBox) {
-            console.error('❌ FATAL: #messages element not found in DOM!');
-            return false;
-        }
-
-        console.log('✅ ConversationManager DOM initialized - messageBox ready');
-        return true;
-    }
-
-    /**
-     * Gère le loader unique : le crée SOUS le message en cours
-     * @returns {HTMLElement} L'élément loader-egg
-     */
-    manageUniqueLoader() {
-        if (!this.messageBox) {
-            console.error('❌ messageBox undefined dans manageUniqueLoader');
-            this.initializeDOM();
-            if (!this.messageBox) {
-                console.error('❌ FATAL: Impossible d\'initialiser messageBox');
-                return null;
-            }
-        }
-
-        const messagesContainer = this.messageBox;
-
-        // ✅ CHERCHER UN LOADER EXISTANT
-        let existingLoader = messagesContainer.querySelector('.streaming-loader');
-
-        if (existingLoader) {
-            // DÉPLACER le loader existant sous le nouveau message
-            const lastMessage = messagesContainer.querySelector(`#message-${this.currentMessageId}`);
-            if (lastMessage) {
-                const contentDiv = lastMessage.querySelector('.content');
-                if (contentDiv) {
-                    existingLoader.remove();
-                    contentDiv.appendChild(existingLoader);
-
-                    console.log('🥚 Loader déplacé sous le nouveau message');
-                    return existingLoader.querySelector('loader-egg');
-                }
-            }
-        }
-
-        // ✅ CRÉER UN NOUVEAU LOADER (méthode sûre sans attributs dans createElement)
-        const loaderDiv = document.createElement('div');
-        loaderDiv.className = 'streaming-loader';
-        loaderDiv.id = `loader-${this.currentMessageId}`;
-
-        // ✅ CRÉER LE CUSTOM ELEMENT SÉPARÉMENT
-        const loaderEgg = document.createElement('loader-egg');
-        loaderEgg.id = `loader-egg-${this.currentMessageId}`;
-        loaderEgg.className = 'inline';
-        
-        // ✅ AJOUTER AU WRAPPER
-        loaderDiv.appendChild(loaderEgg);
-
-        // ✅ AJOUTER AU MESSAGE
-        const lastMessage = messagesContainer.querySelector(`#message-${this.currentMessageId}`);
-        if (lastMessage) {
-            const contentDiv = lastMessage.querySelector('.content');
-            if (contentDiv) {
-                contentDiv.appendChild(loaderDiv);
-                console.log('🥚 Nouveau loader créé et ajouté au DOM');
-                
-                // ✅ ATTENDRE QUE LE CUSTOM ELEMENT SOIT PRÊT
-                return new Promise((resolve) => {
-                    // Si déjà connecté
-                    if (loaderEgg.shadowRoot) {
-                        console.log('🥚 Custom element immédiatement prêt');
-                        resolve(loaderEgg);
-                        return;
-                    }
-                    
-                    // Attendre connexion
-                    const checkReady = () => {
-                        if (loaderEgg.shadowRoot) {
-                            console.log('🥚 Custom element connecté');
-                            resolve(loaderEgg);
-                        } else {
-                            setTimeout(checkReady, 50);
-                        }
-                    };
-                    
-                    checkReady();
-                });
-            }
-        }
-
-        console.error('❌ Impossible d\'ajouter le loader - message parent introuvable');
-        return null;
     }
 
     async sendMessage(message) {
-        if (!this.messageBox) {
-            console.error('❌ messageBox not initialized, retrying...');
-            this.initializeDOM();
-
-            if (!this.messageBox) {
-                throw new Error('Cannot send message: messageBox element not found in DOM');
-            }
-        }
-
         if (this.isStreaming) return;
 
         this.isStreaming = true;
@@ -156,16 +44,19 @@ class ConversationManager {
             await new Promise((r) => setTimeout(r, 500));
             window.scrollTo(0, 0);
 
-            // ✅ STOCKER L'ID DU MESSAGE
-            this.currentMessageId = window.token;
-
-            // ✅ CRÉER LE MESSAGE ASSISTANT VIDE
+            // Créer le message avec loader intégré
             const avatarImage = '<div class="avatar-placeholder"></div>';
-            await this.createLoadingMessage(avatarImage);
+            this.createLoadingMessage(avatarImage);
 
             window.scrollTo(0, 0);
 
-            await new Promise((r) => setTimeout(r, 500));
+            // Le loader est automatiquement en mode THINKING via createLoadingMessage()
+            const inlineLoader = document.querySelector(`#loader-egg-${window.token}`);
+            if (inlineLoader && typeof inlineLoader.setState === 'function') {
+                inlineLoader.setState('thinking');
+            }
+
+            await new Promise((r) => setTimeout(r, 1000));
             window.scrollTo(0, 0);
 
             const response = await fetch(`/backend-api/v2/conversation`, {
@@ -247,12 +138,11 @@ class ConversationManager {
                         if (eventData === "[DONE]") {
                             await processPendingText();
 
-                            // ✅ PASSER LE LOADER EN IDLE
-                            const loaderEgg = this.messageBox.querySelector('.streaming-loader loader-egg');
-                            if (loaderEgg && typeof loaderEgg.setState === 'function') {
-                                console.log('🥚 DEBUG - État avant IDLE:', loaderEgg.currentState);
-                                loaderEgg.setState('idle');
-                                console.log('🥚 Loader passé en IDLE');
+                            // ✅ MODIFIER : NE PAS supprimer le loader, juste le passer en IDLE
+                            const loaderEgg = document.getElementById(`loader-egg-${window.token}`);
+                            if (loaderEgg) {
+                                loaderEgg.setState('idle'); // ← Retour en mode IDLE (pas de suppression)
+                                console.log('🥚 Loader passé en mode IDLE'); // ← Debug
                             }
 
                             await writeNoRAGConversation(text, message, links);
@@ -265,10 +155,12 @@ class ConversationManager {
 
                         const dataObject = JSON.parse(eventData);
 
+                        // ✅ GARDER LE LOADER EN THINKING - NE RIEN FAIRE
                         if (links.length === 0) {
                             links = dataObject.metadata.links;
                         }
 
+                        // ✅ Ajouter badge iManage si nécessaire
                         if (links.length !== 0) {
                             this.addImanageBadge();
                         }
@@ -276,6 +168,7 @@ class ConversationManager {
                         language = dataObject.metadata.language;
                         try {
                             if (dataObject.response) {
+                                // Le loader reste en THINKING pendant tout le streaming
                                 if (!hasContent) {
                                     hasContent = true;
                                 }
@@ -291,11 +184,11 @@ class ConversationManager {
 
             await window.storageManager.addMessage(window.conversation_id, "user", user_image, message);
         } catch (e) {
-            const loaderEgg = this.messageBox.querySelector('.streaming-loader loader-egg');
-            if (loaderEgg && typeof loaderEgg.setState === 'function') {
-                console.log('🥚 DEBUG - État avant IDLE:', loaderEgg.currentState);
+            // ✅ AJOUTER : En cas d'erreur, aussi retourner en IDLE
+            const loaderEgg = document.getElementById(`loader-egg-${window.token}`);
+            if (loaderEgg) {
                 loaderEgg.setState('idle');
-                console.log('🥚 Loader passé en mode IDLE (erreur)');
+                console.log('🥚 Loader passé en mode IDLE (erreur)'); // ← Debug
             }
 
             await window.storageManager.addMessage(window.conversation_id, "user", user_image, message);
@@ -339,7 +232,7 @@ class ConversationManager {
         return conversation?.items || [];
     }
 
-    async createLoadingMessage(avatarImage) {
+    createLoadingMessage(avatarImage) {
         const messageDiv = document.createElement('div');
         messageDiv.className = 'message message-assistant';
         messageDiv.id = `message-${window.token}`;
@@ -348,22 +241,45 @@ class ConversationManager {
             ${avatarImage}
             <div class="content streaming-content">
                 <div id="imanage_${window.token}" class="assistant-content"></div>
+                <div class="streaming-loader" id="loader-${window.token}">
+                    <loader-egg id="loader-egg-${window.token}" class="inline"></loader-egg>
+                </div>
             </div>
         `;
 
-        this.messageBox.appendChild(messageDiv);
-        this.messageBox.scrollTop = this.messageBox.scrollHeight;
+        const messageBox = document.getElementById('messages');
+        messageBox.appendChild(messageDiv);
+        messageBox.scrollTop = messageBox.scrollHeight;
 
-        // ✅ CRÉER LE LOADER ET LE PASSER EN THINKING
-        const loaderEgg = await this.manageUniqueLoader();
-        if (loaderEgg && typeof loaderEgg.setState === 'function') {
-            loaderEgg.setState('thinking');
-            console.log('🥚 Loader passé en THINKING');
-        } else {
-            console.error('❌ LoaderEgg non fonctionnel');
-        }
+        // ✅ AJOUTER : Passer le loader en mode THINKING
+        setTimeout(() => {
+            const loaderEgg = document.getElementById(`loader-egg-${window.token}`);
+            if (loaderEgg) {
+                loaderEgg.setState('thinking'); // ← Démarre l'animation THINKING
+                console.log('🥚 Loader démarré en mode THINKING'); // ← Debug
+            }
+        }, 100); // Attendre que le custom element soit connecté
 
         return messageDiv;
+    }
+
+    removeLoadingMessage() {
+        const loaderId = `loader-${window.token}`;
+        const loaderElement = document.getElementById(loaderId);
+
+        if (loaderElement) {
+            // Animation de sortie
+            loaderElement.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+            loaderElement.style.opacity = '0';
+            loaderElement.style.transform = 'translateY(-10px)';
+
+            setTimeout(() => {
+                loaderElement.remove();
+            }, 300);
+        }
+
+        // Le contenu est déjà visible dans la nouvelle structure
+        // Plus besoin de l'afficher explicitement
     }
 
     addImanageBadge() {
@@ -375,7 +291,7 @@ class ConversationManager {
 
             if (actionsEl && !actionsEl.querySelector('.source-badge')) {
                 const badge = document.createElement('img');
-                badge.src = '/assets/img/imanage-work.webp';
+                badge.src = '/assets/img/imanage_logo_small.png';
                 badge.className = 'source-badge';
                 badge.alt = 'iManage source';
                 badge.style.width = '20px';
