@@ -291,7 +291,7 @@ class ConversationManager {
 
             if (actionsEl && !actionsEl.querySelector('.source-badge')) {
                 const badge = document.createElement('img');
-                badge.src = '/assets/img/imanage_logo_small.png';
+                badge.src = '/assets/img/imanage-work.webp'; // ✅ CORRIGÉ
                 badge.className = 'source-badge';
                 badge.alt = 'iManage source';
                 badge.style.width = '20px';
