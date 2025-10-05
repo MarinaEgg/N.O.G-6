@@ -79,9 +79,6 @@ body {
     justify-content: space-between;
     align-items: center;
     padding: 1.5rem 3rem; /* RÉDUIT de 2rem à 1.5rem */
-    background: rgba(255, 255, 255, 0.9);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
     border-bottom: 1px solid rgba(0, 0, 0, 0.1);
     flex-shrink: 0;
     position: relative;
@@ -199,12 +196,7 @@ body {
 
 /* Cartes d'agents avec effet glass */
 .agent-card {
-    background: rgba(255, 255, 255, 0.98);
     border: 1px solid var(--gray);
-    box-shadow: 
-        0 8px 32px rgba(47, 47, 46, 0.08),
-        0 2px 8px rgba(47, 47, 46, 0.04);
-    
     border-radius: 16px;
     padding: 24px;
     cursor: pointer;
@@ -254,18 +246,8 @@ body {
 }
 
 .agent-card:hover {
-    /* Background encore plus opaque au hover */
-    background: rgba(255, 255, 255, 1);
     transform: translateY(-6px) scale(1.02);
-    box-shadow: 
-        0 20px 60px rgba(0, 0, 0, 0.15),
-        0 8px 24px rgba(0, 0, 0, 0.1),
-        inset 0 1px 0 rgba(255, 255, 255, 0.8);
     border-color: rgba(255, 255, 255, 0.6);
-    /* SUPPRIMER ces lignes :
-    backdrop-filter: blur(30px);
-    -webkit-backdrop-filter: blur(30px);
-    */
 }
 
 /* Contenu des cartes */
@@ -345,9 +327,6 @@ body {
     font-family: "Inter", sans-serif;
     border: 2px solid rgba(0, 0, 0, 0.1);
     border-radius: 25px;
-    background: rgba(255, 255, 255, 0.95);
-    /* RÉDUIRE le blur de 10px à 5px */
-    backdrop-filter: blur(5px);
     transition: all 0.3s ease;
     color: var(--colour-3);
 }
