@@ -123,14 +123,7 @@
     position: absolute;
     width: 280px;
     min-height: 200px;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(25px);
-    border: 1px solid rgba(255, 255, 255, 0.4);
     border-radius: 12px;
-    box-shadow:
-        0 8px 32px rgba(0, 0, 0, 0.08),
-        0 2px 8px rgba(0, 0, 0, 0.04),
-        inset 0 1px 0 rgba(255, 255, 255, 0.6);
     cursor: move;
     user-select: none;
     z-index: 5;
@@ -431,7 +424,6 @@
     left: 50%;
     transform: translateX(-50%);
     background: rgba(249, 228, 121, 0.95);
-    backdrop-filter: blur(10px);
     padding: 8px 16px;
     border-radius: 20px;
     display: flex;
@@ -496,15 +488,8 @@ body.sidebar-open .chat-card-indicator {
     display: flex;
     align-items: center;
     gap: 12px;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(25px);
-    border: 1px solid rgba(255, 255, 255, 0.4);
     border-radius: 12px;
     padding: 8px 16px;
-    box-shadow:
-        0 8px 32px rgba(0, 0, 0, 0.08),
-        0 2px 8px rgba(0, 0, 0, 0.04),
-        inset 0 1px 0 rgba(255, 255, 255, 0.6);
     font-family: "Inter", sans-serif;
     /* NOUVEAU : Même style glassmorphique que les cartes */
     animation: fadeInFromTop 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -857,8 +842,6 @@ SUPPRIMÉS :
 
     /* Fond glassmorphique Ivory */
     background: #fffbeb;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
 
     /* Bordures et forme */
     border: 1px solid rgba(255, 255, 255, 0.3);
@@ -867,12 +850,6 @@ SUPPRIMÉS :
 
     /* Espacement interne */
     padding: 8px 16px;
-
-    /* Ombres portées douces */
-    box-shadow:
-        0 8px 32px rgba(0, 0, 0, 0.1),
-        0 2px 8px rgba(0, 0, 0, 0.05),
-        inset 0 1px 0 rgba(255, 255, 255, 0.6);
 
     /* Animation et transitions */
     opacity: 0;
