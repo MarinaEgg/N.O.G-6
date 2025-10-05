@@ -13,37 +13,57 @@
 }
 
 .sync-status.synced {
-    background-color: #4CAF50; /* Green */
+    background-color: #4CAF50;
+    /* Green */
     box-shadow: 0 0 8px rgba(76, 175, 80, 0.6);
 }
 
 .sync-status.modified {
-    background-color: #FFC107; /* Amber */
+    background-color: #FFC107;
+    /* Amber */
     box-shadow: 0 0 8px rgba(255, 193, 7, 0.6);
     animation: pulse 2s infinite;
 }
 
 .sync-status.conflict {
-    background-color: #F44336; /* Red */
+    background-color: #F44336;
+    /* Red */
     box-shadow: 0 0 8px rgba(244, 67, 54, 0.6);
     animation: pulse 1s infinite;
 }
 
 .sync-status.pending {
-    background-color: #2196F3; /* Blue */
+    background-color: #2196F3;
+    /* Blue */
     box-shadow: 0 0 8px rgba(33, 150, 243, 0.6);
     animation: spin 1.5s linear infinite;
 }
 
 @keyframes pulse {
-    0% { transform: scale(1); opacity: 0.8; }
-    50% { transform: scale(1.2); opacity: 1; }
-    100% { transform: scale(1); opacity: 0.8; }
+    0% {
+        transform: scale(1);
+        opacity: 0.8;
+    }
+
+    50% {
+        transform: scale(1.2);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 0.8;
+    }
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 /* ========== CARTE FICHIER - STYLES SPÉCIFIQUES ========== */
@@ -367,14 +387,9 @@ canvas.pdf-canvas {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background: rgba(255, 255, 255, 0.98);
-    backdrop-filter: blur(25px);
     border: 1px solid rgba(255, 255, 255, 0.4);
     border-radius: 16px;
     padding: 24px;
-    box-shadow: 
-        0 16px 48px rgba(0, 0, 0, 0.12),
-        0 4px 16px rgba(0, 0, 0, 0.08);
     z-index: 10000;
     animation: modalFadeIn 0.3s ease;
 }
@@ -386,12 +401,10 @@ canvas.pdf-canvas {
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(
-        135deg, 
-        rgba(255, 255, 255, 0.3) 0%, 
-        rgba(255, 255, 255, 0.1) 50%,
-        rgba(255, 255, 255, 0.2) 100%
-    );
+    background: linear-gradient(135deg,
+            rgba(255, 255, 255, 0.3) 0%,
+            rgba(255, 255, 255, 0.1) 50%,
+            rgba(255, 255, 255, 0.2) 100%);
     border-radius: 16px;
     pointer-events: none;
     z-index: -1;
@@ -485,7 +498,6 @@ canvas.pdf-canvas {
     right: 0;
     bottom: 0;
     background: rgba(0, 0, 0, 0.3);
-    backdrop-filter: blur(4px);
     z-index: 9999;
     animation: overlayFadeIn 0.3s ease;
 }
@@ -496,6 +508,7 @@ canvas.pdf-canvas {
         opacity: 0;
         transform: translate(-50%, -50%) scale(0.9);
     }
+
     to {
         opacity: 1;
         transform: translate(-50%, -50%) scale(1);
@@ -503,8 +516,13 @@ canvas.pdf-canvas {
 }
 
 @keyframes overlayFadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 /* ========== RESPONSIVE POUR LES CARTES FICHIER ========== */
@@ -515,23 +533,23 @@ canvas.pdf-canvas {
         max-width: 380px;
         min-height: 400px;
     }
-    
+
     .pdf-canvas {
         max-width: calc(100vw - 80px);
     }
-    
+
     .card-type-options {
         flex-direction: column;
         gap: 12px;
     }
-    
+
     .card-type-option {
         flex-direction: row;
         text-align: left;
         min-width: 200px;
         gap: 16px;
     }
-    
+
     .card-type-icon {
         margin-bottom: 0;
         font-size: 24px;
@@ -543,19 +561,19 @@ canvas.pdf-canvas {
         width: calc(100vw - 40px);
         max-width: 280px;
     }
-    
+
     .card-type-selector {
         width: calc(100vw - 40px);
         max-width: 300px;
         padding: 20px;
     }
-    
+
     .file-info {
         flex-direction: column;
         text-align: center;
         gap: 12px;
     }
-    
+
     .file-meta {
         justify-content: center;
     }
@@ -575,8 +593,13 @@ canvas.pdf-canvas {
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 /* ========== AMÉLIORATIONS ACCESSIBILITÉ ========== */
@@ -691,7 +714,8 @@ canvas.pdf-canvas {
 .workspace-card.card-text .collaboration-indicator {
     position: absolute;
     bottom: 8px;
-    right: 24px; /* leave space for .sync-status bubble at bottom-right */
+    right: 24px;
+    /* leave space for .sync-status bubble at bottom-right */
     display: flex;
     align-items: center;
     gap: 6px;
@@ -702,12 +726,16 @@ canvas.pdf-canvas {
     border: 1px solid rgba(0, 0, 0, 0.06);
     opacity: 0.9;
     transition: opacity 0.2s ease;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
-.workspace-card.card-text .collaboration-indicator:hover { opacity: 1; }
+.workspace-card.card-text .collaboration-indicator:hover {
+    opacity: 1;
+}
 
-.workspace-card.card-text .collab-icon { flex-shrink: 0; }
+.workspace-card.card-text .collab-icon {
+    flex-shrink: 0;
+}
 
 .workspace-card.card-text .collab-text {
     font-size: 10px;
@@ -717,8 +745,15 @@ canvas.pdf-canvas {
 }
 
 @keyframes collaboration-pulse {
-    0%, 100% { opacity: 0.85; }
-    50% { opacity: 1; }
+
+    0%,
+    100% {
+        opacity: 0.85;
+    }
+
+    50% {
+        opacity: 1;
+    }
 }
 
 .workspace-card.card-text .collaboration-indicator .collab-icon {
@@ -727,15 +762,15 @@ canvas.pdf-canvas {
 
 /* Responsive adjustments so padding matches indicator size on smaller screens */
 @media (max-width: 990px) {
-  .workspace-card.card-text .document-content {
-    padding-bottom: 80px;
-  }
+    .workspace-card.card-text .document-content {
+        padding-bottom: 80px;
+    }
 }
 
 @media (max-width: 600px) {
-  .workspace-card.card-text .document-content {
-    padding-bottom: 96px;
-  }
+    .workspace-card.card-text .document-content {
+        padding-bottom: 96px;
+    }
 }
 
 /* ========== DOCUMENT VIEW SCOPE (avoid conflicts with workspace.css) ========== */
@@ -755,13 +790,14 @@ canvas.pdf-canvas {
 
 /* ========== CLEANUP OF OLD BORDERS INSIDE TEXT CARDS ========== */
 .workspace-card.card-text .card-content-view,
-.workspace-card.card-text .card-content-view > div {
+.workspace-card.card-text .card-content-view>div {
     border: none !important;
 }
+
 /* ========== TRANSITIONS ET ANIMATIONS ========== */
 
 .workspace-card {
-    transition: 
+    transition:
         width 0.3s ease,
         height 0.3s ease,
         box-shadow 0.2s ease;
@@ -790,7 +826,6 @@ canvas.pdf-canvas {
     right: 0;
     bottom: 0;
     background: rgba(0, 0, 0, 0.3);
-    backdrop-filter: blur(4px);
     z-index: 9999;
     animation: overlayFadeIn 0.3s ease;
     display: flex;
@@ -801,14 +836,9 @@ canvas.pdf-canvas {
 /* ========== SÉLECTEUR DE TYPE DE CARTE ========== */
 .card-type-selector {
     position: relative;
-    background: rgba(255, 255, 255, 0.98);
-    backdrop-filter: blur(25px);
     border: 1px solid rgba(255, 255, 255, 0.4);
     border-radius: 16px;
     padding: 32px;
-    box-shadow: 
-        0 16px 48px rgba(0, 0, 0, 0.12),
-        0 4px 16px rgba(0, 0, 0, 0.08);
     z-index: 10000;
     animation: modalFadeIn 0.3s ease;
     max-width: 500px;
@@ -822,12 +852,10 @@ canvas.pdf-canvas {
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(
-        135deg, 
-        rgba(255, 255, 255, 0.3) 0%, 
-        rgba(255, 255, 255, 0.1) 50%,
-        rgba(255, 255, 255, 0.2) 100%
-    );
+    background: linear-gradient(135deg,
+            rgba(255, 255, 255, 0.3) 0%,
+            rgba(255, 255, 255, 0.1) 50%,
+            rgba(255, 255, 255, 0.2) 100%);
     border-radius: 16px;
     pointer-events: none;
     z-index: -1;
@@ -897,11 +925,9 @@ canvas.pdf-canvas {
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(
-        135deg,
-        rgba(249, 228, 121, 0.05) 0%,
-        rgba(249, 228, 121, 0.02) 100%
-    );
+    background: linear-gradient(135deg,
+            rgba(249, 228, 121, 0.05) 0%,
+            rgba(249, 228, 121, 0.02) 100%);
     opacity: 0;
     transition: opacity 0.3s ease;
     z-index: 0;
@@ -917,7 +943,7 @@ canvas.pdf-canvas {
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
-.card-type-option > * {
+.card-type-option>* {
     position: relative;
     z-index: 1;
 }
@@ -958,6 +984,7 @@ canvas.pdf-canvas {
         opacity: 0;
         transform: scale(0.9);
     }
+
     to {
         opacity: 1;
         transform: scale(1);
@@ -965,8 +992,13 @@ canvas.pdf-canvas {
 }
 
 @keyframes overlayFadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 /* ========== RESPONSIVE ========== */
@@ -976,12 +1008,12 @@ canvas.pdf-canvas {
         margin: 20px;
         width: calc(100vw - 40px);
     }
-    
+
     .card-type-options {
         flex-direction: column;
         gap: 16px;
     }
-    
+
     .card-type-option {
         flex-direction: row;
         text-align: left;
@@ -989,13 +1021,13 @@ canvas.pdf-canvas {
         padding: 20px;
         gap: 16px;
     }
-    
+
     .card-type-icon {
         margin-bottom: 0;
         font-size: 28px;
         min-width: 40px;
     }
-    
+
     .selector-title {
         font-size: 18px;
         margin-bottom: 20px;
@@ -1024,6 +1056,7 @@ canvas.pdf-canvas {
 
 /* ========== SUPPORT RÉDUCTION MOUVEMENT ========== */
 @media (prefers-reduced-motion: reduce) {
+
     .card-type-option,
     .card-type-icon,
     .modal-overlay,
@@ -1031,11 +1064,11 @@ canvas.pdf-canvas {
         animation: none;
         transition: none;
     }
-    
+
     .card-type-option:hover {
         transform: none;
     }
-    
+
     .card-type-option:hover .card-type-icon {
         transform: none;
     }
@@ -1107,12 +1140,12 @@ canvas.pdf-canvas {
     .repertoires-list {
         gap: 6px;
     }
-    
+
     .repertoire-item {
         font-size: 10px;
         padding: 3px 6px;
     }
-    
+
     .departement-info {
         font-size: 11px;
         padding: 5px 8px;
