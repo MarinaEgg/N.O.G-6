@@ -1,6 +1,22 @@
 const { app } = require('@azure/functions');
 const cosmosService = require('../services/cosmosService');
 
+app.http('messages-options', {
+  methods: ['OPTIONS'],
+  authLevel: 'anonymous',
+  route: 'messages',
+  handler: async () => ({
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Max-Age': '86400'
+    },
+    body: ''
+  })
+});
+
 app.http('messages-get', {
   methods: ['GET'],
   authLevel: 'anonymous',
