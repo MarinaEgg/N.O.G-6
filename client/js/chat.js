@@ -94,6 +94,59 @@ const actionsButtons = `<div class="actions">
 const loadingStream = `<span class="loading-stream"></span>`;
 let prompt_lock = false;
 
+// ========== INTÉGRATION API AZURE + RAG ==========
+
+/**
+ * Init APIs au chargement
+ */
+async function initializeApis() {
+  try {
+    const health = await window.cosmosService.checkHealth();
+    console.log('✅ Cosmos:', health);
+
+    const agents = await window.cosmosService.getAgents();
+    console.log('📋 Agents:', agents);
+    window.availableAgents = agents;
+  } catch (error) {
+    console.error('❌ Init APIs failed:', error);
+  }
+}
+
+/**
+ * Sauvegarde message dans Cosmos
+ */
+async function saveMessageToCosmos(conversationId, userId, content, role) {
+  try {
+    const msg = await window.cosmosService.createMessage(
+      conversationId, userId, content, role
+    );
+    console.log('💾 Saved:', msg.id);
+    return msg;
+  } catch (error) {
+    console.error('❌ Save failed:', error);
+    return null;
+  }
+}
+
+/**
+ * Ensure conversation exists
+ */
+async function ensureConversationInCosmos(conversationId, title) {
+  const userId = window.userService.getUserId();
+  
+  try {
+    const conversations = await window.cosmosService.getConversations(userId);
+    const exists = conversations.some(c => c.id === conversationId);
+    
+    if (!exists) {
+      await window.cosmosService.createConversation(userId, title);
+      console.log('✅ Conversation created:', conversationId);
+    }
+  } catch (error) {
+    console.error('❌ Ensure conversation failed:', error);
+  }
+}
+
 // Messages de greeting mis à jour
 const greetingMessages = {
   fr: "Bonjour. Je suis N.O.G – Nested Orchestration & Governance.\nJe suis conçu pour orchestrer et gouverner les interactions entre différents agents spécialisés, avec une capacité native de connexion à des systèmes tiers tels qu'iManage, entre autres.\n\nInteropérable avec plusieurs grands modèles de langage (GPT, Mistral, Claude), je prends en charge des opérations complexes tout en assurant une traçabilité fine et systématique de chaque interaction.\n\nCette architecture garantit une gouvernance robuste, conforme aux exigences des environnements juridiques professionnels.",
@@ -203,6 +256,16 @@ function closeLinks() {
 }
 
 const ask_gpt = async (message) => {
+  const userId = window.userService.getUserId();
+  const conversationId = window.conversation_id;
+  
+  // Ensure conversation in Cosmos
+  await ensureConversationInCosmos(conversationId, message.substring(0, 50));
+  
+  // Save user message
+  await saveMessageToCosmos(conversationId, userId, message, 'user');
+  
+  // Use existing conversationManager
   return await window.conversationManager.sendMessage(message);
 };
 
@@ -310,6 +373,10 @@ async function writeNoRAGConversation(text, message, links) {
   } else {
     await window.storageManager.addMessage(window.conversation_id, "assistant", imanage_image, text);
   }
+
+  // Save to Cosmos
+  const userId = window.userService.getUserId();
+  await saveMessageToCosmos(window.conversation_id, userId, text, 'assistant');
 }
 
 // Fonction pour créer une bulle vidéo YouTube qui redirige vers la page de liens
@@ -424,6 +491,15 @@ async function writeRAGConversation(links, text, language) {
     "video_assistant",
     video_image,
     links_and_language
+  );
+
+  // Save to Cosmos
+  const userId = window.userService.getUserId();
+  await saveMessageToCosmos(
+    window.conversation_id,
+    userId,
+    JSON.stringify(links_and_language),
+    'assistant'
   );
 }
 
@@ -714,6 +790,8 @@ window.new_conversation = new_conversation;
 // Fonction d'initialisation pour main.js
 window.initializeChat = async () => {
   console.log('🚀 Initializing chat...');
+  
+  await initializeApis();
   
   load_settings_localstorage();
 
