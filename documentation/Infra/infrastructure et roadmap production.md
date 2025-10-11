@@ -203,3 +203,13 @@
 - GZRS Storage : 50€
 - Application Gateway : 100€
 - Monitoring/Logs : 50€
+
+  ## 💰 Notes : Ne pas oublier Fichiers à modifier :
+
+health.js 
+agents.js
+conversations.js
+messages.js
+De 'Access-Control-Allow-Origin': 'http://localhost:3000' remplacées par 'Access-Control-Allow-Origin': '*'
+
+⚠️ Note de sécurité : Pour la production, il faudra restreindre le CORS aux domaines autorisés uniquement.
