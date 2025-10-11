@@ -1,0 +1,14 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "node",
+    "COSMOS_ENDPOINT": "https://legal-chatbot-cosmos.documents.azure.com:443/",
+    "COSMOS_KEY": "Du6igsKLhPa3UqepQp9msm8LiLPoTs4diaS0fSzas4ctescxtb6gQGizThpwA7pLUfwyz3LMY7E2ACDbH5CugQ==",
+    "COSMOS_DATABASE_NAME": "legalChatbotDB"
+  },
+  "Host": {
+    "CORS": "http://localhost:3000,http://localhost:5173",
+    "CORSCredentials": false
+  }
+}
