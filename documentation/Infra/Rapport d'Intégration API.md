@@ -37,6 +37,7 @@ Intégration complète d'une architecture API hybride pour le chatbot légal, co
   "data": {...},
   "error": null
 }
+```
 
 # 🔧 Services Frontend Créés
 
