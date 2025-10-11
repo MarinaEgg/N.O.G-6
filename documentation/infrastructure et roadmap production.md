@@ -4,24 +4,24 @@
 
 legal-chatbot-staging_group/
 ├─ Cosmos DB (legal-chatbot-cosmos)
-│ ├─ legalChatbotDB
-│ │ ├─ agents (partition: /agentId)
-│ │ ├─ conversations (partition: /userId)
-│ │ └─ messages (partition: /conversationId)
-│ ├─ Mode: Serverless + Free Tier (1000 RU/s gratuits)
-│ └─ Backup: Continuous 7 days
+│  ├─ legalChatbotDB
+│  │  ├─ agents (partition: /agentId)
+│  │  ├─ conversations (partition: /userId)
+│  │  └─ messages (partition: /conversationId)
+│  ├─ Mode: Serverless + Free Tier (1000 RU/s gratuits)
+│  └─ Backup: Continuous 7 days
 │
 ├─ Function App (legal-chatbot-api)
-│ ├─ Runtime: Node.js 20 LTS Linux
-│ ├─ Plan: Consumption (serverless)
-│ ├─ Storage: legalchatbotstagingb9ea
-│ └─ Monitoring: Application Insights
+│  ├─ Runtime: Node.js 20 LTS Linux
+│  ├─ Plan: Consumption (serverless)
+│  ├─ Storage: legalchatbotstagingb9ea
+│  └─ Monitoring: Application Insights
 │
 └─ Ressources existantes
-├─ Azure OpenAI (2 instances: east + west)
-├─ Storage Account (eggondatalake)
-├─ Pinecone SaaS (embeddings)
-└─ 2 VMs (legal-chatbot-staging + interface)
+   ├─ Azure OpenAI (2 instances: east + west)
+   ├─ Storage Account (eggondatalake)
+   ├─ Pinecone SaaS (embeddings)
+   └─ 2 VMs (legal-chatbot-staging + interface)
 
 ### Infrastructure Azure (East US 2)
 
