@@ -1,6 +1,7 @@
 {
   "name": "legal-chatbot-api",
   "version": "1.0.0",
+  "main": "src/index.js",
   "dependencies": {
     "@azure/functions": "^4.5.0",
     "@azure/cosmos": "^4.0.0"
